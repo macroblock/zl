@@ -10,14 +10,14 @@ import (
 	"github.com/macroblock/zl/text"
 )
 
-var logFilter = loglevel.Error.OrLower() //loglevel.All
+var logFilter = loglevel.Warning.OrLower() //loglevel.All
 
 func main() {
 	log := log.Default()
 	log.AddLogger(logFilter, nil, os.Stdout)
 	log.Debug("log initialized")
 	if len(os.Args) <= 1 {
-		log.Warning(nil, "not enough arguments")
+		log.Warning(nil, "not enough paramenters")
 	}
 	for _, filename := range os.Args[1:] {
 		dir, name := filepath.Split(filename)
