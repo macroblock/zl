@@ -5,111 +5,45 @@ import (
 	"io"
 	"strings"
 	"time"
+
+	"github.com/macroblock/zl/core/loglevel"
 )
 
 // Default -
 var defaultLog *TLog
 
-// TLevel -
-type TLevel int
-
-// TFilter -
-type TFilter uint
-
-// General loglevel flags
-const (
-	TooLow TLevel = -1 + iota
-	Panic
-	Error
-	Warning
-	Recover
-	Notice
-	Info
-	Debug
-	TooHigh
-)
-
-var levelToStr = []string{"PNC", "ERR", "WRN", "RECOVER", "NTC", "INF", "DBG", "UNKNOWN"}
-
-// Filter -
-func (o TLevel) Filter() TFilter { return 1 << uint(o) }
-
-// Below -
-func (o TLevel) Below() TFilter { return o.Filter() - 1 }
-
-// Above -
-func (o TLevel) Above() TFilter { return TooHigh.Below() &^ o.OrLower() }
-
-// OrLower -
-func (o TLevel) OrLower() TFilter { return o.Filter() | (o.Filter() - 1) }
-
-// OrHigher -
-func (o TLevel) OrHigher() TFilter { return TooHigh.Below() &^ o.Below() }
-
-// In -
-func (o TLevel) In(f TFilter) bool { return f&o.Filter() != 0 }
-
-// NotIn -
-func (o TLevel) NotIn(f TFilter) bool { return f&o.Filter() == 0 }
-
-// String -
-func (o TLevel) String() string {
-	if o <= TooLow || o >= TooHigh {
-		o = TooHigh
-	}
-	return levelToStr[o]
-}
-
-// Include -
-func (o TFilter) Include(f TFilter) TFilter { return o | f }
-
-// Exclude -
-func (o TFilter) Exclude(f TFilter) TFilter { return o &^ f }
-
-// String -
-func (o TFilter) String() string {
-	sl := []string{}
-	for i, x := 0, o&TooHigh.Below(); x != 0; i, x = i+1, x>>1 {
-		if x&1 != 0 {
-			sl = append(sl, levelToStr[i])
-		}
-	}
-	if len(sl) == 0 {
-		return levelToStr[TooHigh]
-	}
-	return strings.Join(sl, "|")
-}
-
 // TLog -
 type TLog struct {
-	writers  []TLogger
+	node *struct{ writers []TLogger }
+	//writers  []TLogger
 	hasError bool
+	prefix   string
 }
 
 // IFormat -
 type IFormat interface {
-	format(level TLevel, prefix string, err error, wasErr bool, text ...interface{}) string
+	format(level loglevel.TLevel, prefix string, err error, wasErr bool, text ...interface{}) string
 }
 
 // TLogger -
 type TLogger struct {
 	IFormat
 	io.Writer
-	filter   TFilter
+	filter   loglevel.TFilter
 	prefixes []string
 }
 
-func (o *TLogger) format(level TLevel, prefix string, err error, wasErr bool, text ...interface{}) string {
-	msg := fmt.Sprintf("%v %v %v: %v\n", time.Now().Format("2006-01-02 15:04:05"), errPrefix(wasErr), level.String(), fmt.Sprint(text...))
+func (o *TLogger) format(level loglevel.TLevel, prefix string, err error, wasErr bool, text ...interface{}) string {
+	msg := fmt.Sprintf("%v (%v) %v%v: %v\n", time.Now().Format("2006-01-02 15:04:05"), prefix, errPrefix(wasErr), level.String(), fmt.Sprint(text...))
 	if err != nil {
-		msg = fmt.Sprintf("%v        error: %v\n", msg, err.Error())
+		msg = fmt.Sprintf("%v    Cause: %v\n", msg, err.Error())
 	}
 	return msg
 }
 
 // New -
 func New() *TLog {
-	return &TLog{}
+	return &TLog{node: &struct{ writers []TLogger }{}}
 }
 
 // Default -
@@ -117,33 +51,47 @@ func Default() *TLog {
 	return defaultLog
 }
 
+// Clone -
+func (o *TLog) Clone() *TLog {
+	log := TLog{}
+	log = *o
+	return &log
+}
+
+// SetPrefix -
+func (o *TLog) SetPrefix(s string) TLog {
+	o.prefix = s
+	return *o
+}
+
+// String -
 func (o *TLog) String() string {
 	sl := []string{}
-	for _, l := range o.writers {
+	for _, l := range o.node.writers {
 		sl = append(sl, l.filter.String()+": "+strings.Join(l.prefixes, ","))
 	}
 	return strings.Join(sl, "\n")
 }
 
 // AddLogger -
-func (o *TLog) AddLogger(filter TFilter, prefixes []string, w io.Writer) {
-	o.writers = append(o.writers, TLogger{Writer: w, filter: filter, prefixes: prefixes})
+func (o *TLog) AddLogger(filter loglevel.TFilter, prefixes []string, w io.Writer) {
+	o.node.writers = append(o.node.writers, TLogger{Writer: w, filter: filter, prefixes: prefixes})
 }
 
 func errPrefix(hasError bool) string {
 	if hasError {
-		return "###"
+		return "#"
 	}
 	return ""
 }
 
 // Log -
-func (o *TLog) Log(level TLevel, prefix string, err error, text ...interface{}) {
-	for _, writer := range o.writers {
+func (o *TLog) Log(level loglevel.TLevel, prefix string, err error, text ...interface{}) {
+	for _, writer := range o.node.writers {
 		if level.NotIn(writer.filter) {
 			continue
 		}
-		if level == Recover {
+		if level == loglevel.Recover {
 			o.hasError = false
 		}
 		if err != nil {
@@ -155,18 +103,44 @@ func (o *TLog) Log(level TLevel, prefix string, err error, text ...interface{}) 
 			fmt.Println(err)
 		}
 	}
-	if level == Panic {
+	if level == loglevel.Panic {
 		panic(fmt.Sprint(text...))
 	}
 }
 
+// Panic -
+func (o *TLog) Panic(err error, text ...interface{}) {
+	o.Log(loglevel.Panic, o.prefix, err, text...)
+}
+
+// Error -
+func (o *TLog) Error(err error, text ...interface{}) {
+	o.Log(loglevel.Error, o.prefix, err, text...)
+}
+
+// Warning -
+func (o *TLog) Warning(err error, text ...interface{}) {
+	o.Log(loglevel.Warning, o.prefix, err, text...)
+}
+
 // Recover -
 func (o *TLog) Recover(text ...interface{}) {
+	o.Log(loglevel.Recover, o.prefix, nil, text...)
+}
+
+// Notice -
+func (o *TLog) Notice(text ...interface{}) {
+	o.Log(loglevel.Notice, o.prefix, nil, text...)
 }
 
 // Info -
 func (o *TLog) Info(text ...interface{}) {
-	o.Log(Info, "", nil, text...)
+	o.Log(loglevel.Info, o.prefix, nil, text...)
+}
+
+// Debug -
+func (o *TLog) Debug(text ...interface{}) {
+	o.Log(loglevel.Debug, o.prefix, nil, text...)
 }
 
 // HasError -
@@ -176,4 +150,5 @@ func (o *TLog) HasError() bool {
 
 func init() {
 	defaultLog = New()
+	defaultLog.SetPrefix("Main")
 }
