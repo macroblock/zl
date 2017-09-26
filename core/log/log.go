@@ -11,49 +11,73 @@ import (
 var defaultLog *TLog
 
 // TLevel -
-type TLevel uint
+type TLevel int
+
+// TFilter -
+type TFilter uint
 
 // General loglevel flags
 const (
-	//All   TLogLevel = uint(-1)
-	Quiet TLevel = 0
-	Panic        = 1 << iota
+	TooLow TLevel = -1 + iota
+	Panic
 	Error
 	Warning
 	Recover
 	Notice
 	Info
 	Debug
-	outOfRange
+	TooHigh
 )
 
-var levelToStr = []string{"UNKNOWN", "PNC", "ERR", "WRN", "RECOVER", "NTC", "INF", "DBG"}
+var levelToStr = []string{"PNC", "ERR", "WRN", "RECOVER", "NTC", "INF", "DBG", "UNKNOWN"}
 
-func (o TLevel) maxLevel() TLevel {
-	return ^(o - 1) & o & (outOfRange - 1)
-}
+// Filter -
+func (o TLevel) Filter() TFilter { return 1 << uint(o) }
 
-func (o TLevel) minLevel() TLevel {
-	i := 1
-	for x := o & (outOfRange - 1); x != 0; x >>= 1 {
-		i <<= 1
-	}
-	i >>= 1
-	return TLevel(i)
-}
+// Below -
+func (o TLevel) Below() TFilter { return o.Filter() - 1 }
 
-// func (O TLevel) Leq
+// Above -
+func (o TLevel) Above() TFilter { return TooHigh.Below() &^ o.OrLower() }
+
+// OrLower -
+func (o TLevel) OrLower() TFilter { return o.Filter() | (o.Filter() - 1) }
+
+// OrHigher -
+func (o TLevel) OrHigher() TFilter { return TooHigh.Below() &^ o.Below() }
+
+// In -
+func (o TLevel) In(f TFilter) bool { return f&o.Filter() != 0 }
+
+// NotIn -
+func (o TLevel) NotIn(f TFilter) bool { return f&o.Filter() == 0 }
 
 // String -
 func (o TLevel) String() string {
-	s := []string{}
-	i := 1
-	for x := o & (outOfRange - 1); x != 0; x >>= 1 {
+	if o <= TooLow || o >= TooHigh {
+		o = TooHigh
+	}
+	return levelToStr[o]
+}
+
+// Include -
+func (o TFilter) Include(f TFilter) TFilter { return o | f }
+
+// Exclude -
+func (o TFilter) Exclude(f TFilter) TFilter { return o &^ f }
+
+// String -
+func (o TFilter) String() string {
+	sl := []string{}
+	for i, x := 0, o&TooHigh.Below(); x != 0; i, x = i+1, x>>1 {
 		if x&1 != 0 {
-			s = append(s, levelToStr[i])
+			sl = append(sl, levelToStr[i])
 		}
 	}
-	return strings.Join(s, "|")
+	if len(sl) == 0 {
+		return levelToStr[TooHigh]
+	}
+	return strings.Join(sl, "|")
 }
 
 // TLog -
@@ -62,11 +86,25 @@ type TLog struct {
 	hasError bool
 }
 
+// IFormat -
+type IFormat interface {
+	format(level TLevel, prefix string, err error, wasErr bool, text ...interface{}) string
+}
+
 // TLogger -
 type TLogger struct {
+	IFormat
 	io.Writer
-	level    TLevel
+	filter   TFilter
 	prefixes []string
+}
+
+func (o *TLogger) format(level TLevel, prefix string, err error, wasErr bool, text ...interface{}) string {
+	msg := fmt.Sprintf("%v %v %v: %v\n", time.Now().Format("2006-01-02 15:04:05"), errPrefix(wasErr), level.String(), fmt.Sprint(text...))
+	if err != nil {
+		msg = fmt.Sprintf("%v        error: %v\n", msg, err.Error())
+	}
+	return msg
 }
 
 // New -
@@ -82,14 +120,14 @@ func Default() *TLog {
 func (o *TLog) String() string {
 	sl := []string{}
 	for _, l := range o.writers {
-		sl = append(sl, l.level.String()+": "+strings.Join(l.prefixes, ","))
+		sl = append(sl, l.filter.String()+": "+strings.Join(l.prefixes, ","))
 	}
 	return strings.Join(sl, "\n")
 }
 
 // AddLogger -
-func (o *TLog) AddLogger(level TLevel, prefixes []string, w io.Writer) {
-	o.writers = append(o.writers, TLogger{Writer: w, level: level, prefixes: prefixes})
+func (o *TLog) AddLogger(filter TFilter, prefixes []string, w io.Writer) {
+	o.writers = append(o.writers, TLogger{Writer: w, filter: filter, prefixes: prefixes})
 }
 
 func errPrefix(hasError bool) string {
@@ -101,54 +139,39 @@ func errPrefix(hasError bool) string {
 
 // Log -
 func (o *TLog) Log(level TLevel, prefix string, err error, text ...interface{}) {
-	level = level.maxLevel()
 	for _, writer := range o.writers {
-		if writer.level&level == 0 {
+		if level.NotIn(writer.filter) {
 			continue
 		}
-		if level&Recover != 0 {
+		if level == Recover {
 			o.hasError = false
 		}
-		msg := fmt.Sprintf("%v %v %v: %v\n", time.Now().Format("2006-01-02 15:04:05"), errPrefix(o.hasError), level.String(), fmt.Sprint(text...))
 		if err != nil {
 			o.hasError = true
-			msg = fmt.Sprintf("%v        error: %v\n", msg, err.Error())
 		}
+		msg := writer.format(level, prefix, err, o.hasError, text...)
 		if _, err := writer.Write([]byte(msg)); err != nil {
 			// TODO: smarter
 			fmt.Println(err)
 		}
 	}
-	if level&Panic != 0 {
+	if level == Panic {
 		panic(fmt.Sprint(text...))
 	}
 }
 
 // Recover -
 func (o *TLog) Recover(text ...interface{}) {
+}
 
+// Info -
+func (o *TLog) Info(text ...interface{}) {
+	o.Log(Info, "", nil, text...)
 }
 
 // HasError -
 func (o *TLog) HasError() bool {
 	return o.hasError
-}
-
-// // TLogger -
-// type TLogger struct {
-// 	writer   io.Writer
-// 	logLevel TLevel
-// }
-
-// func (o *TLogger) Close() {
-// }
-
-// func (o *TLogger) Log(level TLevel, err error, text ...interface{}) {
-// }
-
-// ILog -
-type ILog interface {
-	Log(level TLevel, err error, text ...interface{})
 }
 
 func init() {
