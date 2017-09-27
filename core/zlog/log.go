@@ -2,7 +2,6 @@ package zlog
 
 import (
 	"fmt"
-	"io"
 	"strings"
 
 	"github.com/macroblock/zl/core/loglevel"
@@ -14,7 +13,7 @@ var defaultLog = New("main")
 
 type tNode struct {
 	hasError bool
-	writers  []zlogger.TLogger
+	loggers  []zlogger.ILogger
 }
 
 // TLog -
@@ -53,20 +52,26 @@ func (o *TLog) HasError() bool {
 // String -
 func (o *TLog) String() string {
 	sl := []string{}
-	for _, l := range o.node.writers {
+	for _, l := range o.node.loggers {
 		sl = append(sl, l.Filter().String()) //+": "+strings.Join(l.prefixes, ","))
 	}
 	return strings.Join(sl, "\n")
 }
 
-// AddLogger -
-func (o *TLog) AddLogger(filter loglevel.TFilter, prefixes []string, w io.Writer) {
-	o.node.writers = append(o.node.writers, *zlogger.New(filter, prefixes, w))
+// Add -
+func (o *TLog) Add(logger ...zlogger.ILogger) {
+	// TODO: check on nil
+	o.node.loggers = append(o.node.loggers, logger...)
 }
+
+// // AddLogger -
+// func (o *TLog) AddLogger(name string, filter loglevel.TFilter, prefixes []string, w io.Writer) {
+// 	o.node.writers = append(o.node.writers, *zlogger.New(name, filter, prefixes, w))
+// }
 
 // Log -
 func (o *TLog) Log(level loglevel.TLevel, err error, text ...interface{}) {
-	for _, writer := range o.node.writers {
+	for _, writer := range o.node.loggers {
 		if level.NotIn(writer.Filter()) {
 			continue
 		}
@@ -76,7 +81,7 @@ func (o *TLog) Log(level loglevel.TLevel, err error, text ...interface{}) {
 		if err != nil {
 			o.node.hasError = true
 		}
-		msg := writer.Format(level, o.name, o.node.hasError, err, text...)
+		msg := zlogger.FormatLog(writer.Style(writer.Format(), level, o.name, o.node.hasError, err, text...))
 		if _, err := writer.Write([]byte(msg)); err != nil {
 			// TODO: smarter
 			fmt.Println(err)

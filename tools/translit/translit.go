@@ -5,16 +5,25 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/macroblock/zl/core/log"
 	"github.com/macroblock/zl/core/loglevel"
+	"github.com/macroblock/zl/core/zlog"
+	"github.com/macroblock/zl/core/zlogger"
 	"github.com/macroblock/zl/text"
 )
 
-var logFilter = loglevel.Warning.OrLower() //loglevel.All
+var (
+	log       = zlog.Get()
+	logFilter = loglevel.Warning.OrLower() //loglevel.All
+)
 
 func main() {
-	log := log.Default()
-	log.AddLogger(logFilter, nil, os.Stdout)
+	log.Add(
+		zlogger.Build().
+			SetName("sdtout").
+			SetFilter(logFilter).
+			SetWriter(os.Stdout).
+			Done())
+
 	log.Debug("log initialized")
 	if len(os.Args) <= 1 {
 		log.Warning(nil, "not enough paramenters")

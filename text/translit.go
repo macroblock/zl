@@ -4,13 +4,13 @@ import (
 	"strings"
 	"unicode"
 
-	pkgLog "github.com/macroblock/zl/core/log"
+	"github.com/macroblock/zl/core/zlog"
 	"golang.org/x/text/runes"
 	"golang.org/x/text/transform"
 	"golang.org/x/text/unicode/norm"
 )
 
-var log = pkgLog.Default()
+var log = zlog.Clone("translit")
 
 // Translit -
 func Translit(text string) (string, error) {
@@ -53,10 +53,4 @@ func Translit(text string) (string, error) {
 	}
 	log.Debug("result \"" + ret + "\"")
 	return ret, nil
-}
-
-func init() {
-	//log := log.Default()
-	log = log.Clone()
-	log.SetPrefix("translit")
 }
