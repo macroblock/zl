@@ -3,22 +3,22 @@ package main
 import (
 	"os"
 
-	"github.com/macroblock/zl/core/log"
 	"github.com/macroblock/zl/core/loglevel"
+	"github.com/macroblock/zl/core/zlog"
 )
 
+var log = zlog.Get()
+
 func main() {
-	l := log.Default()
-	l.AddLogger(loglevel.Info.Only(), nil, os.Stdout)
-	l.Info("test")
-	l.Info(loglevel.Notice.Below())
-	l.Info(loglevel.Notice.OrLower().Exclude(loglevel.Error.OrLower()))
-	b := l.Clone()
-	b.Info("other log")
-	b.SetPrefix("other")
-	b.Info("other prefix")
-	l.Info("main log")
-	b.AddLogger(loglevel.Info.Only(), nil, os.Stdout)
-	b.Info("other dup message")
-	l.Info("main dup msg")
+	log.AddLogger(loglevel.Info.Only(), nil, os.Stdout)
+	log.Info("test")
+	log.Info(loglevel.Notice.Below())
+	log.Info(loglevel.Notice.OrLower().Exclude(loglevel.Error.OrLower()))
+	log2 := log.Clone("other")
+	log2.Info("other log")
+	log2.Info("other prefix")
+	log.Info("main log")
+	log2.AddLogger(loglevel.Info.Only(), nil, os.Stdout)
+	log2.Info("other dup message")
+	log.Info("main dup msg")
 }
