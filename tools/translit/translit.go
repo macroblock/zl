@@ -14,7 +14,7 @@ import (
 
 var (
 	log       = zlog.Instance("main")
-	logFilter = loglevel.Warning.OrLower() //.Include(loglevel.Debug.Only())
+	logFilter = loglevel.Warning.OrLower()
 )
 
 func main() {
@@ -43,7 +43,7 @@ func main() {
 		log.Warning(nil, "not enough parameters")
 	}
 	for _, path := range os.Args[1:] {
-		log.Info("") //strings.Repeat("-", 79))
+		log.Info("")
 		log.Info("rename: " + path)
 		dir, name := filepath.Split(path)
 		ext := filepath.Ext(path)
@@ -56,5 +56,4 @@ func main() {
 			log.Notice("result: " + dir + name + ext)
 		}
 	}
-
 }

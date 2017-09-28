@@ -5,6 +5,7 @@ import (
 	"io"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/macroblock/zl/core/loglevel"
 )
@@ -74,6 +75,26 @@ func FormatLog(format string, time, level, name, wasErr, err, text string) strin
 	ret = strings.Replace(ret, "~n", name, 1)
 	ret = strings.Replace(ret, "~t", time, 1)
 	return ret
+}
+
+func formatter(format string) string {
+	if len(format) == 0 {
+		return ""
+	}
+	ret := ""
+	buf := []rune{0, 0}
+	buf[1], _ = utf8.DecodeRuneInString(format)
+	for _, ch := range format[1:] {
+		buf[0] = buf[1]
+		buf[1] = ch
+		if buf[0] != "~" && buf[0] != 0 {
+			ret += buf[0]
+			continue
+		}
+			ret += "~"
+		} else if {
+		}
+	}
 }
 
 func defaultStyler(format string, level loglevel.TLevel, name string, wasErr bool, err error, text ...interface{}) (formatStr, timeStr, levelStr, nameStr, wasErrStr, errStr, textStr string) {
