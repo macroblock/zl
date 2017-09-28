@@ -3,6 +3,7 @@ package zlog
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/macroblock/zl/core/loglevel"
 	"github.com/macroblock/zl/core/zlogger"
@@ -71,6 +72,8 @@ func (o *TLog) Add(logger ...*zlogger.TLogger) {
 
 // Log -
 func (o *TLog) Log(level loglevel.TLevel, err error, text ...interface{}) {
+	formatParams := zlogger.NewFormatParams(time.Now(), level, fmt.Sprint(text...), err, o.node.hasError, o.name)
+	_ = formatParams
 	for _, writer := range o.node.loggers {
 		if level.NotIn(writer.Filter()) {
 			continue

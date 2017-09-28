@@ -77,23 +77,81 @@ func FormatLog(format string, time, level, name, wasErr, err, text string) strin
 	return ret
 }
 
-func formatter(format string) string {
+// TFormatParams -
+type TFormatParams struct {
+	time       time.Time
+	loglevel   loglevel.TLevel
+	text       string
+	err        error
+	hasErr     bool
+	moduleName string
+}
+
+// NewFormatParams - for internal use. There are no reasons to call it outside log function
+func NewFormatParams(time time.Time, loglevel loglevel.TLevel, text string, err error, hasErr bool, moduleName string) *TFormatParams {
+	return &TFormatParams{
+		time:       time,
+		loglevel:   loglevel,
+		text:       text,
+		err:        err,
+		hasErr:     hasErr,
+		moduleName: moduleName,
+	}
+}
+
+// Time -
+func (o *TFormatParams) Time() time.Time { return o.time }
+
+// LogLevel -
+func (o *TFormatParams) LogLevel() loglevel.TLevel { return o.loglevel }
+
+// Text -
+func (o *TFormatParams) Text() string { return o.text }
+
+// Error -
+func (o *TFormatParams) Error() error { return o.err }
+
+// HasError -
+func (o *TFormatParams) HasError() bool { return o.hasErr }
+
+// ModuleName -
+func (o *TFormatParams) ModuleName() string { return o.moduleName }
+
+// Formatter -
+func (o *TLogger) Formatter(format string, params *TFormatParams) string {
 	if len(format) == 0 {
 		return ""
 	}
 	ret := ""
-	buf := []rune{0, 0}
-	buf[1], _ = utf8.DecodeRuneInString(format)
-	for _, ch := range format[1:] {
-		buf[0] = buf[1]
-		buf[1] = ch
-		if buf[0] != "~" && buf[0] != 0 {
-			ret += buf[0]
-			continue
-		}
+
+	str, ok := o.zstyler('~', params)
+	ret += str
+
+	ch, _ := utf8.DecodeRuneInString(format)
+	for _, nextCh := range format[1:] {
+		switch {
+		case ch == '~' && nextCh == '~':
 			ret += "~"
-		} else if {
+		case ch != '~':
+			ret += string(ch)
+		default:
+			if str, ok = o.zstyler(nextCh, params); !ok {
+				str = string(ch)
+			}
+			ret += str
 		}
+		ch = nextCh
+	}
+	ret += string(ch)
+
+	str, _ = o.zstyler('\x00', params)
+	ret += str
+	return ret
+}
+
+func (o *TLogger) zstyler(ch rune, params *TFormatParams) (string, bool) {
+	switch ch {
+	case '~':
 	}
 }
 
