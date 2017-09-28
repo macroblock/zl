@@ -11,39 +11,24 @@ import (
 
 const defaultFormat = "~t (~n)~w~l: ~x~e\n"
 
-// IStyler -
-type IStyler interface {
-	Style(format string, level loglevel.TLevel, name string, wasErr bool, err error, text ...interface{}) (formatStr, timeStr, levelStr, nameStr, wasErrStr, errStr, textStr string)
-}
+// TStyler -
+type TStyler func(format string, level loglevel.TLevel, name string, wasErr bool, err error, text ...interface{}) (formatStr, timeStr, levelStr, nameStr, wasErrStr, errStr, textStr string)
 
 // Supported stylers
 var (
-	AnsiStyler    IStyler = &tAnsiStyler{}
-	DefaultStyler IStyler = &tDefaultStyler{}
+	DefaultStyler TStyler = defaultStyler
+	AnsiStyler    TStyler = ansiStyler
 )
-
-// ILogger -
-type ILogger interface {
-	IStyler
-	io.Writer
-	Filter() loglevel.TFilter
-	Format() string
-}
 
 // TLogger -
 type TLogger struct {
-	IStyler
-	io.Writer
 	name     string
+	writer   io.Writer
+	styler   TStyler
 	filter   loglevel.TFilter
 	format   string
 	prefixes []string
 }
-
-var (
-	_ IStyler   = (*TLogger)(nil)
-	_ io.Writer = (*TLogger)(nil)
-)
 
 func errPrefix(hasError bool) string {
 	if hasError {
@@ -60,6 +45,16 @@ func (o *TLogger) Filter() loglevel.TFilter {
 // Format -
 func (o *TLogger) Format() string {
 	return o.format
+}
+
+// Writer -
+func (o *TLogger) Writer() io.Writer {
+	return o.writer
+}
+
+// Styler -
+func (o *TLogger) Styler() TStyler {
+	return o.styler
 }
 
 // FormatLog -
@@ -81,11 +76,7 @@ func FormatLog(format string, time, level, name, wasErr, err, text string) strin
 	return ret
 }
 
-// DefaultStyler -
-type tDefaultStyler struct{}
-
-//Style -
-func (o *tDefaultStyler) Style(format string, level loglevel.TLevel, name string, wasErr bool, err error, text ...interface{}) (formatStr, timeStr, levelStr, nameStr, wasErrStr, errStr, textStr string) {
+func defaultStyler(format string, level loglevel.TLevel, name string, wasErr bool, err error, text ...interface{}) (formatStr, timeStr, levelStr, nameStr, wasErrStr, errStr, textStr string) {
 	formatStr = format
 	timeStr = time.Now().Format("2006-01-02 15:04:05")
 	levelStr = level.String()
@@ -101,10 +92,7 @@ func (o *tDefaultStyler) Style(format string, level loglevel.TLevel, name string
 	return
 }
 
-type tAnsiStyler struct{}
-
-//Style -
-func (o *tAnsiStyler) Style(format string, level loglevel.TLevel, name string, wasErr bool, err error, text ...interface{}) (formatStr, timeStr, levelStr, nameStr, wasErrStr, errStr, textStr string) {
+func ansiStyler(format string, level loglevel.TLevel, name string, wasErr bool, err error, text ...interface{}) (formatStr, timeStr, levelStr, nameStr, wasErrStr, errStr, textStr string) {
 	reset := "\x1b[0m"
 	color := ""
 	switch level {

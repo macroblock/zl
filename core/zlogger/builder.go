@@ -23,7 +23,7 @@ func autoName() string {
 
 // Default -
 func Default() *TLogger {
-	return &TLogger{Writer: os.Stdout, IStyler: DefaultStyler, name: autoName(), filter: loglevel.All, format: defaultFormat}
+	return &TLogger{writer: os.Stdout, styler: DefaultStyler, name: autoName(), filter: loglevel.All, format: defaultFormat}
 }
 
 // Build -
@@ -32,7 +32,7 @@ func Build() tBuild {
 }
 
 // Done -
-func (o tBuild) Done() ILogger {
+func (o tBuild) Done() *TLogger {
 	return o.logger
 }
 
@@ -50,13 +50,13 @@ func (o tBuild) SetFilter(filter loglevel.TFilter) tBuild {
 
 // SetWriter -
 func (o tBuild) SetWriter(writer io.Writer) tBuild {
-	o.logger.Writer = writer
+	o.logger.writer = writer
 	return o
 }
 
 // SetStyler -
-func (o tBuild) SetStyler(styler IStyler) tBuild {
-	o.logger.IStyler = styler
+func (o tBuild) SetStyler(styler TStyler) tBuild {
+	o.logger.styler = styler
 	return o
 }
 

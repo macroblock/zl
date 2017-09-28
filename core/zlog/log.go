@@ -9,11 +9,11 @@ import (
 )
 
 // Default -
-var defaultLog = New("main")
+var defaultLog *TLog
 
 type tNode struct {
 	hasError bool
-	loggers  []zlogger.ILogger
+	loggers  []*zlogger.TLogger
 }
 
 // TLog -
@@ -27,21 +27,26 @@ func New(name string) *TLog {
 	return &TLog{name: name, node: &tNode{}}
 }
 
-// Get -
-func Get() *TLog {
-	return defaultLog
+// Instance -
+func Instance(name string) *TLog {
+	if defaultLog == nil {
+		defaultLog = New(name)
+		return defaultLog
+	}
+	ret := *defaultLog
+	ret.name = name
+	return &ret
 }
 
-// Clone -
-func Clone(name string) *TLog {
-	return defaultLog.Clone(name)
-}
-
-// Clone -
-func (o *TLog) Clone(name string) *TLog {
-	log := *o
-	log.name = name
-	return &log
+// Instance -
+func (o *TLog) Instance(name string) *TLog {
+	if o == nil {
+		o = New(name)
+		return o
+	}
+	ret := *o
+	ret.name = name
+	return &ret
 }
 
 // HasError -
@@ -59,15 +64,10 @@ func (o *TLog) String() string {
 }
 
 // Add -
-func (o *TLog) Add(logger ...zlogger.ILogger) {
+func (o *TLog) Add(logger ...*zlogger.TLogger) {
 	// TODO: check on nil
 	o.node.loggers = append(o.node.loggers, logger...)
 }
-
-// // AddLogger -
-// func (o *TLog) AddLogger(name string, filter loglevel.TFilter, prefixes []string, w io.Writer) {
-// 	o.node.writers = append(o.node.writers, *zlogger.New(name, filter, prefixes, w))
-// }
 
 // Log -
 func (o *TLog) Log(level loglevel.TLevel, err error, text ...interface{}) {
@@ -81,8 +81,8 @@ func (o *TLog) Log(level loglevel.TLevel, err error, text ...interface{}) {
 		if err != nil {
 			o.node.hasError = true
 		}
-		msg := zlogger.FormatLog(writer.Style(writer.Format(), level, o.name, o.node.hasError, err, text...))
-		if _, err := writer.Write([]byte(msg)); err != nil {
+		msg := zlogger.FormatLog(writer.Styler()(writer.Format(), level, o.name, o.node.hasError, err, text...))
+		if _, err := writer.Writer().Write([]byte(msg)); err != nil {
 			// TODO: smarter
 			fmt.Println(err)
 		}

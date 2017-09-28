@@ -18,14 +18,6 @@ const (
 	TooHigh
 )
 
-// TFilter -
-type TFilter uint
-
-// General loglevel filters
-const (
-	All TFilter = 1<<uint(TooHigh) - 1
-)
-
 var levelToStr = []string{"PNC", "ERR", "WRN", "RECOVER", "NTC", "INF", "DBG", "UNKNOWN"}
 
 // Only -
@@ -56,6 +48,16 @@ func (o TLevel) String() string {
 	}
 	return levelToStr[o]
 }
+
+//============================================================================
+
+// TFilter -
+type TFilter uint
+
+// General loglevel filters
+const (
+	All TFilter = 1<<uint(TooHigh) - 1
+)
 
 // Include -
 func (o TFilter) Include(f TFilter) TFilter { return o | f }

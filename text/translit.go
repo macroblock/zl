@@ -10,7 +10,7 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
-var log = zlog.Clone("translit")
+var log = zlog.Instance("translit")
 
 // Translit -
 func Translit(text string) (string, error) {
@@ -34,7 +34,7 @@ func Translit(text string) (string, error) {
 	t := transform.Chain(runes.ReplaceIllFormed(), norm.NFC, runes.Map(unicode.ToLower), replaceY, norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
 	src, _, err := transform.String(t, text)
 	if err != nil {
-		log.Error(err, "this cannot be happened")
+		log.Error(err, "this point cannot be reached")
 		return "", err
 	}
 	log.Debug("transform chain \"" + src + "\"")

@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	log       = zlog.Get()
+	log       = zlog.Instance("main")
 	logFilter = loglevel.Warning.OrLower() //loglevel.All
 )
 
@@ -26,7 +26,7 @@ func main() {
 
 	log.Debug("log initialized")
 	if len(os.Args) <= 1 {
-		log.Warning(nil, "not enough paramenters")
+		log.Warning(nil, "not enough parameters")
 	}
 	for _, filename := range os.Args[1:] {
 		dir, name := filepath.Split(filename)

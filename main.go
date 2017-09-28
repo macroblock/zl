@@ -9,7 +9,7 @@ import (
 	"github.com/macroblock/zl/core/zlogger"
 )
 
-var log = zlog.Get()
+var log = zlog.Instance("main")
 
 func main() {
 	log.Add(
@@ -29,15 +29,15 @@ func main() {
 	log.Debug("debug")
 	log.Info("info")
 	log.Notice("notice")
-	log.Warning(fmt.Errorf("test warning Error"), "warning")
-	log.Error(fmt.Errorf("test error Error"), "error")
+	log.Warning(fmt.Errorf("test Warning error"), "warning")
+	log.Error(fmt.Errorf("test Error error"), "error")
 	log.Recover("recover error state")
 	log.Info("without error")
 
 	log.Info("test")
 	log.Info(loglevel.Notice.Below())
 	log.Info(loglevel.Notice.OrLower().Exclude(loglevel.Error.OrLower()))
-	log2 := log.Clone("other")
+	log2 := log.Instance("other")
 	log2.Info("other log")
 	log2.Info("other prefix")
 	log.Info("main log")
