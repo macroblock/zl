@@ -83,7 +83,7 @@ func defaultStyler(format string, level loglevel.TLevel, name string, wasErr boo
 	nameStr = name
 	textStr = fmt.Sprint(text...)
 	if err != nil {
-		errStr = fmt.Sprintf("\n"+strings.Repeat(" ", len(timeStr)+1)+"+Cause: %v", err.Error())
+		errStr = fmt.Sprintf("\n    +Cause: %v", err.Error())
 	}
 	wasErrStr = " "
 	if wasErr {
@@ -99,7 +99,7 @@ func ansiStyler(format string, level loglevel.TLevel, name string, wasErr bool, 
 	case loglevel.Debug:
 		color = "\x1b[1;30m" // bright black
 	case loglevel.Info:
-		color = "\x1b[0;37m" // white (lightgrey)
+		color = "\x1b[0m" // reset //white (lightgrey)
 	case loglevel.Notice:
 		color = "\x1b[1;32m" // bright green
 	case loglevel.Recover:
@@ -117,7 +117,7 @@ func ansiStyler(format string, level loglevel.TLevel, name string, wasErr bool, 
 	nameStr = name
 	textStr = fmt.Sprint(text...)
 	if err != nil {
-		errStr = fmt.Sprintf("\n"+strings.Repeat(" ", len(timeStr)+1)+"+Cause: %v", err.Error())
+		errStr = fmt.Sprintf("\n    +Cause: %v", err.Error())
 	}
 	wasErrStr = " "
 	if wasErr {
