@@ -17,7 +17,7 @@ import (
 // ~e - error message
 // ~x - text message
 // example: "~d ~t (~n)~w~l: ~x~e\n"
-const defaultFormat = "~t (~m)~l:~s~x~e\n"
+const defaultFormat = "~t (~m) ~l:~s~x~e\n"
 
 // TStyler -
 type TStyler func(key rune, params *TFormatParams) (string, bool)
@@ -202,53 +202,3 @@ func ansiStyler(key rune, params *TFormatParams) (string, bool) {
 	}
 	return ret, ok
 }
-
-// func defaultStyler(format string, level loglevel.TLevel, name string, wasErr bool, err error, text ...interface{}) (formatStr, timeStr, levelStr, nameStr, wasErrStr, errStr, textStr string) {
-// 	formatStr = format
-// 	timeStr = time.Now().Format("2006-01-02 15:04:05")
-// 	levelStr = level.String()
-// 	nameStr = name
-// 	textStr = fmt.Sprint(text...)
-// 	if err != nil {
-// 		errStr = fmt.Sprintf("\n    +Cause: %v", err.Error())
-// 	}
-// 	wasErrStr = " "
-// 	if wasErr {
-// 		wasErrStr = "!"
-// 	}
-// 	return
-// }
-
-// func ansiStyler(format string, level loglevel.TLevel, name string, wasErr bool, err error, text ...interface{}) (formatStr, timeStr, levelStr, nameStr, wasErrStr, errStr, textStr string) {
-// 	reset := "\x1b[0m"
-// 	color := ""
-// 	switch level {
-// 	case loglevel.Debug:
-// 		color = "\x1b[1;30m" // bright black
-// 	case loglevel.Info:
-// 		color = "\x1b[0m" // reset //white (lightgrey)
-// 	case loglevel.Notice:
-// 		color = "\x1b[1;32m" // bright green
-// 	case loglevel.Recover:
-// 		color = "\x1b[1;36m" // bright cyan
-// 	case loglevel.Warning:
-// 		color = "\x1b[1;33m" // bright yellow
-// 	case loglevel.Error:
-// 		color = "\x1b[1;31m" // bright red
-// 	case loglevel.Panic:
-// 		color = "\x1b[1;31m" // bright red
-// 	}
-// 	formatStr = color + format + reset
-// 	timeStr = time.Now().Format("2006-01-02 15:04:05")
-// 	levelStr = level.String()
-// 	nameStr = name
-// 	textStr = fmt.Sprint(text...)
-// 	if err != nil {
-// 		errStr = fmt.Sprintf("\n    +Cause: %v", err.Error())
-// 	}
-// 	wasErrStr = " "
-// 	if wasErr {
-// 		wasErrStr = "!"
-// 	}
-// 	return
-// }

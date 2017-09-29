@@ -71,7 +71,7 @@ func (o *TLog) Add(logger ...*zlogger.TLogger) {
 }
 
 // Log -
-func (o *TLog) Log(level loglevel.TLevel, reset loglevel.TFilter, err error, text ...interface{}) {
+func (o *TLog) Log(level loglevel.TLevel, resetFilter loglevel.TFilter, err error, text ...interface{}) {
 	formatParams := zlogger.TFormatParams{
 		Time:       time.Now(),
 		LogLevel:   level,
@@ -80,6 +80,7 @@ func (o *TLog) Log(level loglevel.TLevel, reset loglevel.TFilter, err error, tex
 		State:      o.node.state,
 		ModuleName: o.name,
 	}
+	o.node.state &^= resetFilter
 	o.node.state |= level.Only()
 
 	for _, logger := range o.node.loggers {

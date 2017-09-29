@@ -33,7 +33,7 @@ func main() {
 	log.Notice("notice")
 	log.Warning(fmt.Errorf("test Warning error"), "warning")
 	log.Error(fmt.Errorf("test Error error"), "error")
-	log.Reset(loglevel.Reset.OrLower(), "recover error state")
+	log.Reset(loglevel.Debug.OrLower(), "reset all")
 	log.Info("without error")
 
 	log.Info("test")
@@ -50,5 +50,6 @@ func main() {
 
 	log2.Info("other dup message")
 	log.Info("main dup msg")
-
+	log.Reset(loglevel.All, "")
+	log.Reset(loglevel.All, "")
 }
