@@ -15,23 +15,25 @@ func main() {
 	log.Add(
 		zlogger.Build().
 			SetName("test").
-			SetFilter(loglevel.All).
+			SetLevelFilter(loglevel.All).
 			SetWriter(os.Stdout).
 			SetStyler(zlogger.AnsiStyler).
 			Done(),
 		zlogger.Build().
 			SetName("short").
-			SetFilter(loglevel.Notice.Only().Include(loglevel.Info.Only())).
+			SetLevelFilter(loglevel.Notice.Only().Include(loglevel.Info.Only())).
+			SetModuleFilter([]string{"other"}).
 			SetWriter(os.Stdout).
-			SetFormat("~x\n").
-			Done())
+			SetFormat("---- ~m ---- ~x\n").
+			Done(),
+	)
 
 	log.Debug("debug")
 	log.Info("info")
 	log.Notice("notice")
 	log.Warning(fmt.Errorf("test Warning error"), "warning")
 	log.Error(fmt.Errorf("test Error error"), "error")
-	log.Recover("recover error state")
+	log.Reset(loglevel.Reset.OrLower(), "recover error state")
 	log.Info("without error")
 
 	log.Info("test")

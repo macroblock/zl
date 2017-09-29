@@ -13,8 +13,8 @@ import (
 var defaultLog *TLog
 
 type tNode struct {
-	hasError bool
-	loggers  []*zlogger.TLogger
+	state   loglevel.TFilter
+	loggers []*zlogger.TLogger
 }
 
 // TLog -
@@ -50,16 +50,16 @@ func (o *TLog) Instance(name string) *TLog {
 	return &ret
 }
 
-// HasError -
-func (o *TLog) HasError() bool {
-	return o.node.hasError
+// State -
+func (o *TLog) State() loglevel.TFilter {
+	return o.node.state
 }
 
 // String -
 func (o *TLog) String() string {
 	sl := []string{}
 	for _, l := range o.node.loggers {
-		sl = append(sl, l.Filter().String()) //+": "+strings.Join(l.prefixes, ","))
+		sl = append(sl, l.LevelFilter().String()) //+": "+strings.Join(l.prefixes, ","))
 	}
 	return strings.Join(sl, "\n")
 }
@@ -71,21 +71,27 @@ func (o *TLog) Add(logger ...*zlogger.TLogger) {
 }
 
 // Log -
-func (o *TLog) Log(level loglevel.TLevel, err error, text ...interface{}) {
-	formatParams := zlogger.NewFormatParams(time.Now(), level, fmt.Sprint(text...), err, o.node.hasError, o.name)
-	_ = formatParams
-	for _, writer := range o.node.loggers {
-		if level.NotIn(writer.Filter()) {
+func (o *TLog) Log(level loglevel.TLevel, reset loglevel.TFilter, err error, text ...interface{}) {
+	formatParams := zlogger.TFormatParams{
+		Time:       time.Now(),
+		LogLevel:   level,
+		Text:       fmt.Sprint(text...),
+		Error:      err,
+		State:      o.node.state,
+		ModuleName: o.name,
+	}
+	o.node.state |= level.Only()
+
+	for _, logger := range o.node.loggers {
+		if level.NotIn(logger.LevelFilter()) {
 			continue
 		}
-		if level == loglevel.Recover {
-			o.node.hasError = false
+		if !logger.CanHandle(o.name) {
+			continue
 		}
-		if err != nil {
-			o.node.hasError = true
-		}
-		msg := zlogger.FormatLog(writer.Styler()(writer.Format(), level, o.name, o.node.hasError, err, text...))
-		if _, err := writer.Writer().Write([]byte(msg)); err != nil {
+		formatParams.Format = logger.Format()
+		msg := logger.Formatter(formatParams)
+		if _, err := logger.Writer().Write([]byte(msg)); err != nil {
 			// TODO: smarter
 			fmt.Println(err)
 		}
@@ -97,35 +103,35 @@ func (o *TLog) Log(level loglevel.TLevel, err error, text ...interface{}) {
 
 // Panic -
 func (o *TLog) Panic(err error, text ...interface{}) {
-	o.Log(loglevel.Panic, err, text...)
+	o.Log(loglevel.Panic, 0, err, text...)
 }
 
 // Error -
 func (o *TLog) Error(err error, text ...interface{}) {
-	o.Log(loglevel.Error, err, text...)
+	o.Log(loglevel.Error, 0, err, text...)
 }
 
 // Warning -
 func (o *TLog) Warning(err error, text ...interface{}) {
-	o.Log(loglevel.Warning, err, text...)
+	o.Log(loglevel.Warning, 0, err, text...)
 }
 
-// Recover -
-func (o *TLog) Recover(text ...interface{}) {
-	o.Log(loglevel.Recover, nil, text...)
+// Reset -
+func (o *TLog) Reset(resetFilter loglevel.TFilter, text ...interface{}) {
+	o.Log(loglevel.Reset, resetFilter, nil, text...)
 }
 
 // Notice -
 func (o *TLog) Notice(text ...interface{}) {
-	o.Log(loglevel.Notice, nil, text...)
+	o.Log(loglevel.Notice, 0, nil, text...)
 }
 
 // Info -
 func (o *TLog) Info(text ...interface{}) {
-	o.Log(loglevel.Info, nil, text...)
+	o.Log(loglevel.Info, 0, nil, text...)
 }
 
 // Debug -
 func (o *TLog) Debug(text ...interface{}) {
-	o.Log(loglevel.Debug, nil, text...)
+	o.Log(loglevel.Debug, 0, nil, text...)
 }

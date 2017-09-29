@@ -23,7 +23,7 @@ func autoName() string {
 
 // Default -
 func Default() *TLogger {
-	return &TLogger{writer: os.Stdout, styler: DefaultStyler, name: autoName(), filter: loglevel.All, format: defaultFormat}
+	return &TLogger{writer: os.Stdout, styler: DefaultStyler, name: autoName(), levelFilter: loglevel.All, format: defaultFormat}
 }
 
 // Build -
@@ -42,9 +42,16 @@ func (o tBuild) SetName(name string) tBuild {
 	return o
 }
 
-// SetFilter -
-func (o tBuild) SetFilter(filter loglevel.TFilter) tBuild {
-	o.logger.filter = filter
+// SetLevelFilter -
+func (o tBuild) SetLevelFilter(filter loglevel.TFilter) tBuild {
+	o.logger.levelFilter = filter
+	return o
+}
+
+// SetModuleFilter -
+func (o tBuild) SetModuleFilter(filter []string) tBuild {
+	o.logger.moduleFilter = filter
+	//sort.Strings(o.logger.moduleFilter)
 	return o
 }
 

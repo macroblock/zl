@@ -20,17 +20,17 @@ var (
 func main() {
 	log.Add(
 		zlogger.Build().
-			SetFilter(logFilter).
+			SetLevelFilter(logFilter).
 			SetStyler(zlogger.AnsiStyler).
 			Done(),
 		zlogger.Build().
-			SetFilter(loglevel.Info.Only().Include(loglevel.Notice.Only())).
+			SetLevelFilter(loglevel.Info.Only().Include(loglevel.Notice.Only())).
 			SetFormat("~x\n").
 			SetStyler(zlogger.AnsiStyler).
 			Done())
 
 	defer func() {
-		if log.HasError() {
+		if log.State().Intersect(loglevel.Warning.OrLower()) != 0 {
 			cmd := exec.Command("cmd", "/C", "pause")
 			cmd.Stdin = os.Stdin
 			cmd.Stdout = os.Stdout

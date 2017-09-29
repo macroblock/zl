@@ -11,14 +11,14 @@ const (
 	Panic
 	Error
 	Warning
-	Recover
+	Reset
 	Notice
 	Info
 	Debug
 	TooHigh
 )
 
-var levelToStr = []string{"PNC", "ERR", "WRN", "RECOVER", "NTC", "INF", "DBG", "UNKNOWN"}
+var levelToStr = []string{"PNC", "ERR", "WRN", "RESET", "NTC", "INF", "DBG", "UNKNOWN"}
 
 // Only -
 func (o TLevel) Only() TFilter { return 1 << uint(o) }
@@ -64,6 +64,9 @@ func (o TFilter) Include(f TFilter) TFilter { return o | f }
 
 // Exclude -
 func (o TFilter) Exclude(f TFilter) TFilter { return o &^ f }
+
+// Intersect -
+func (o TFilter) Intersect(f TFilter) TFilter { return o & f }
 
 // String -
 func (o TFilter) String() string {
