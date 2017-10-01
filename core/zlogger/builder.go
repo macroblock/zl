@@ -33,42 +33,49 @@ func Build() tBuild {
 
 // Done -
 func (o tBuild) Done() *TLogger {
-	return o.logger
+	ret := &TLogger{}
+	*ret = *o.logger
+	ret.moduleFilter = append([]string(nil), o.logger.moduleFilter...)
+	o.logger.name = autoName()
+	return ret
 }
 
-// SetName -
-func (o tBuild) SetName(name string) tBuild {
+// Name -
+func (o tBuild) Name(name string) tBuild {
 	o.logger.name = name
 	return o
 }
 
-// SetLevelFilter -
-func (o tBuild) SetLevelFilter(filter loglevel.TFilter) tBuild {
+// LevelFilter -
+func (o tBuild) LevelFilter(filter loglevel.TFilter) tBuild {
 	o.logger.levelFilter = filter
 	return o
 }
 
-// SetModuleFilter -
-func (o tBuild) SetModuleFilter(filter []string) tBuild {
-	o.logger.moduleFilter = filter
-	//sort.Strings(o.logger.moduleFilter)
+// ModuleFilter -
+func (o tBuild) ModuleFilter(filter []string) tBuild {
+	o.logger.moduleFilter = nil
+	if filter != nil {
+		o.logger.moduleFilter = append([]string(nil), filter...)
+		//sort.Strings(o.logger.moduleFilter)
+	}
 	return o
 }
 
-// SetWriter -
-func (o tBuild) SetWriter(writer io.Writer) tBuild {
+// Writer -
+func (o tBuild) Writer(writer io.Writer) tBuild {
 	o.logger.writer = writer
 	return o
 }
 
-// SetStyler -
-func (o tBuild) SetStyler(styler TStyler) tBuild {
+// Styler -
+func (o tBuild) Styler(styler TStyler) tBuild {
 	o.logger.styler = styler
 	return o
 }
 
-// SetFormat -
-func (o tBuild) SetFormat(format string) tBuild {
+// Format -
+func (o tBuild) Format(format string) tBuild {
 	o.logger.format = format
 	return o
 }

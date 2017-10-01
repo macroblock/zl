@@ -14,17 +14,17 @@ var log = zlog.Instance("main")
 func main() {
 	log.Add(
 		zlogger.Build().
-			SetName("test").
-			SetLevelFilter(loglevel.All).
-			SetWriter(os.Stdout).
-			SetStyler(zlogger.AnsiStyler).
+			Name("test").
+			LevelFilter(loglevel.All).
+			Writer(os.Stdout).
+			Styler(zlogger.AnsiStyler).
 			Done(),
 		zlogger.Build().
-			SetName("short").
-			SetLevelFilter(loglevel.Notice.Only().Include(loglevel.Info.Only())).
-			SetModuleFilter([]string{"other"}).
-			SetWriter(os.Stdout).
-			SetFormat("---- ~m ---- ~x\n").
+			Name("tiny").
+			LevelFilter(loglevel.Notice.Only().Include(loglevel.Info.Only())).
+			ModuleFilter([]string{"other"}).
+			Writer(os.Stdout).
+			Format("---- ~m ---- ~x\n").
 			Done(),
 	)
 
@@ -45,7 +45,7 @@ func main() {
 	log.Info("main log")
 	log2.Add(
 		zlogger.Build().
-			SetName("test2").
+			Name("test2").
 			Done())
 
 	log2.Info("other dup message")

@@ -16,8 +16,8 @@ import (
 // ~s - log state
 // ~e - error message
 // ~x - text message
-// example: "~d ~t (~n)~w~l: ~x~e\n"
-const defaultFormat = "~t (~m) ~l:~s~x~e\n"
+// example: "~d ~t (~n) ~l: ~x~e\n"
+const defaultFormat = "~d ~t (~m) ~l:~s~x~e\n"
 
 // TStyler -
 type TStyler func(key rune, params *TFormatParams) (string, bool)
@@ -38,13 +38,6 @@ type TLogger struct {
 	format       string
 }
 
-func errPrefix(hasError bool) string {
-	if hasError {
-		return "#"
-	}
-	return ""
-}
-
 // LevelFilter -
 func (o *TLogger) LevelFilter() loglevel.TFilter {
 	return o.levelFilter
@@ -52,7 +45,7 @@ func (o *TLogger) LevelFilter() loglevel.TFilter {
 
 // ModuleFilter -
 func (o *TLogger) ModuleFilter() []string {
-	return o.moduleFilter
+	return append([]string(nil), o.moduleFilter...)
 }
 
 // Format -
@@ -142,11 +135,11 @@ func defaultStyler(key rune, params *TFormatParams) (string, bool) {
 	switch key {
 	case '~':
 		format := params.Format
+		replace := ""
 		if params.Error != nil {
-			format = strings.Replace(format, "~e", "\n    +cause: ~e", -1)
-		} else {
-			format = strings.Replace(format, "~e", "", -1)
+			replace = "\n    +cause: ~e"
 		}
+		format = strings.Replace(format, "~e", replace, -1)
 		return format, true
 	case 'd':
 		return params.Time.Format("2006-01-02"), true

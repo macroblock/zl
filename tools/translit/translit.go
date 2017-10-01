@@ -20,13 +20,13 @@ var (
 func main() {
 	log.Add(
 		zlogger.Build().
-			SetLevelFilter(logFilter).
-			SetStyler(zlogger.AnsiStyler).
+			LevelFilter(logFilter).
+			Styler(zlogger.AnsiStyler).
 			Done(),
 		zlogger.Build().
-			SetLevelFilter(loglevel.Info.Only().Include(loglevel.Notice.Only())).
-			SetFormat("~x\n").
-			SetStyler(zlogger.AnsiStyler).
+			LevelFilter(loglevel.Info.Only().Include(loglevel.Notice.Only())).
+			Format("~x\n").
+			Styler(zlogger.AnsiStyler).
 			Done())
 
 	defer func() {
