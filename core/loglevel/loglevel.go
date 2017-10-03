@@ -30,7 +30,7 @@ func (o TLevel) Below() TFilter { return o.Only() - 1 }
 func (o TLevel) Above() TFilter { return TooHigh.Below() &^ o.OrLower() }
 
 // OrLower -
-func (o TLevel) OrLower() TFilter { return o.Only() | (o.Only() - 1) }
+func (o TLevel) OrLower() TFilter { return o.Only()<<1 - 1 }
 
 // OrHigher -
 func (o TLevel) OrHigher() TFilter { return TooHigh.Below() &^ o.Below() }
