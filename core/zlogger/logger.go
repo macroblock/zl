@@ -68,8 +68,8 @@ func (o *TLogger) CanHandle(moduleName string) bool {
 	if len(o.moduleFilter) == 0 {
 		return true
 	}
-	for _, n := range o.moduleFilter {
-		if n == moduleName {
+	for _, name := range o.moduleFilter {
+		if name == moduleName {
 			return true
 		}
 	}
