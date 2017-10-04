@@ -22,5 +22,5 @@ func main() {
 	log.Error(nil, "programmstart")
 	log.Warning(nil, "egega';,")
 	tagname.Something()
-	log.Info(tagname.New("sd_2015_Papashina_armiya__12_q0w2_trailer.mpg"))
+	log.Info(tagname.New("sd_2015_Papashina_armiya__12_q0w2_ar2e2_trailer.mpg"))
 }
