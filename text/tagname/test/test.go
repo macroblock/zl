@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/macroblock/zl/core/zlog"
@@ -22,5 +23,9 @@ func main() {
 	log.Error(nil, "programmstart")
 	log.Warning(nil, "egega';,")
 	tagname.Something()
-	log.Info(tagname.New("sd_2015_Papashina_armiya__12_q0w2_ar2e2_trailer.mpg"))
+
+	result := tagname.Parse("_ae2r6__q0w0_q1s3__q3w2_q2s2_q1w1_")
+	for _, tag := range result {
+		log.Info(fmt.Sprintf("%v: %v", tag.Type, tag.Value))
+	}
 }
