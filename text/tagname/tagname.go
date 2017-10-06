@@ -1,12 +1,11 @@
 package tagname
 
 import (
-	"fmt"
-	"strings"
-	"unicode/utf8"
-
 	"github.com/macroblock/zl/core/zlog"
+	"github.com/macroblock/zl/text/tagname/lexer"
 )
+
+var log = zlog.Instance("tagname")
 
 // Tagname - struct tagname
 type Tagname struct {
@@ -14,163 +13,130 @@ type Tagname struct {
 	year, age                                         int
 }
 
-// TLexer -
-type TLexer struct {
-	start  int
-	pos    int
-	width  int
-	src    string
-	result []TTag
+func (o *TTagType) String() string {
+	switch *o {
+	case tagUnknown:
+		return "Unknown"
+	case tagSeparator:
+		return "Separator"
+	case tagQuality:
+		return "Quality"
+	case tagAudio:
+		return "Audio"
+	case tagVideoDefinition:
+		return "VideoDefinition"
+	case tagYear:
+		return "Year"
+	case tagAge:
+		return "Age"
+	case tagMeta:
+		return "Meta"
+	case tagTerminator:
+		return "Termination"
+	case tagName:
+		return "Name"
+	}
+	return "Invalid"
 }
 
-// TTag -
-type TTag struct {
-	Type  int
-	Value string
-}
-
-const runeEOF rune = 0
-const separators string = "_\x00"
 const (
 	tagUnknown = iota
 	tagSeparator
-	tagQ
-	tagA
-	tagD
-	tagY
-	tagN
+	tagQuality
+	tagAudio
+	tagVideoDefinition
+	tagYear
 	tagAge
-	tagM
-	tagT
-	tagF
+	tagMeta
+	tagTerminator
+	tagName
 )
 
+// TTagType -
+type TTagType int
+
+const separators string = "_\x00"
+const runeEOF rune = 0
+
 var list []string
-var log = zlog.Instance("tagname")
 
 //Something - do smthng
 func Something() {
 	log.Warning(nil, "Something")
 }
 
-//NewLexer - create new lexer
-func NewLexer(s string) *TLexer {
-	return &TLexer{src: s}
-}
-
-//Next - go to next rune
-func (o *TLexer) Next() rune {
-	if o.pos >= len(o.src) {
-		o.width = 0
-		return runeEOF
+// ParseA - audio
+func ParseA(l *lexer.TLexer) bool {
+	ok := l.Accept("a")
+	for l.Peek() != '_' && l.Peek() != runeEOF && ok {
+		// ok = ok && l.AcceptAnyEnglish()
+		ok = ok && l.AcceptFn(IsEnglishLetter)
+		log.Info(ok)
+		ok = ok && l.Accept("12345678")
+		log.Info(ok, "\n")
 	}
-	r, width := utf8.DecodeRuneInString(o.src[o.pos:])
-	o.width = width
-	o.pos += width
-	return r
-}
-
-//RollBack - reset pos
-func (o *TLexer) RollBack() {
-	o.pos -= o.width
-}
-
-//Peek - look to next rune
-func (o *TLexer) Peek() rune {
-	r := o.Next()
-	o.RollBack()
-	return r
-}
-
-//Accept - peakup next rune
-func (o *TLexer) Accept(s string) bool {
-	if strings.IndexRune(s, o.Next()) >= 0 {
+	if ok {
+		l.Emit(tagAudio)
 		return true
 	}
-	o.RollBack()
+	l.Ignore()
 	return false
-}
-
-//AcceptAnyEnglish -
-func (o *TLexer) AcceptAnyEnglish() bool {
-	if r := o.Next(); r >= 'a' && r <= 'z' {
-		return true
-	}
-	o.RollBack()
-	return false
-}
-
-//AcceptWhile -
-func (o *TLexer) AcceptWhile(s string) {
-	for strings.IndexRune(s, o.Next()) >= 0 {
-	}
-	o.RollBack()
-
-}
-
-// AcceptWhileNot -
-func (o *TLexer) AcceptWhileNot(s string) {
-	for strings.IndexRune(s, o.Next()) < 0 {
-	}
-	o.RollBack()
-}
-
-//Emit -
-func (o *TLexer) Emit(tagid int) {
-	o.result = append(o.result, TTag{Type: tagid, Value: o.src[o.start:o.pos]})
-	o.start = o.pos
-}
-
-//Ignore -
-func (o *TLexer) Ignore() {
-	o.pos = o.start
-	o.width = 0
-}
-
-//Result -
-func (o *TLexer) Result() []TTag {
-	return o.result
 }
 
 //ParseQ - quality
-func ParseQ(lexer *TLexer) bool {
-	ok := lexer.Accept("q")
-	ok = ok && lexer.Accept("0123")
-	ok = ok && lexer.Accept("sw")
-	ok = ok && lexer.Accept("0123")
-	if lexer.Peek() != '_' {
-		ok = false
-	}
-
+func ParseQ(l *lexer.TLexer) bool {
+	ok := l.Accept("q")
+	ok = ok && l.Accept("0123")
+	ok = ok && l.Accept("sw")
+	ok = ok && l.Accept("0123")
+	ok = ok && IsEndOfTag(l)
 	if ok {
-		lexer.Emit(tagQ)
+		l.Emit(tagQuality)
 		return true
 	}
-	lexer.Ignore()
+	l.Ignore()
 	return false
 }
 
 //ParseD - hdsd
-func ParseD(lexer *TLexer) bool {
-	ok := lexer.Accept("sh")
-	ok = ok && lexer.Accept("d")
-	if lexer.Peek() != '_' {
-		ok = false
-	}
+func ParseD(l *lexer.TLexer) bool {
+	ok := l.Accept("sh")
+	ok = ok && l.Accept("d")
+	ok = ok && IsEndOfTag(l)
 	if ok {
-		lexer.Emit(tagD)
+		l.Emit(tagVideoDefinition)
 		return true
 	}
-	lexer.Ignore()
+	l.Ignore()
 	return false
 }
 
-//AcceptFn - asdfasdf
-func (o *TLexer) AcceptFn(fn func(r rune) bool) bool {
-	if fn(o.Next()) {
+//ParseM -
+func ParseM(l *lexer.TLexer) bool {
+	ok := l.Accept("m")
+	for l.Peek() != '_' && l.Peek() != runeEOF && ok {
+		ok = ok && l.AcceptFn(IsEnglishLetter)
+	}
+	if ok {
+		l.Emit(tagMeta)
 		return true
 	}
-	o.RollBack()
+	l.Ignore()
+	return false
+}
+
+// ParseY -
+func ParseY(l *lexer.TLexer) bool {
+	ok := l.Accept("12")
+	ok = ok && l.AcceptFn(IsDiggit)
+	ok = ok && l.AcceptFn(IsDiggit)
+	ok = ok && l.AcceptFn(IsDiggit)
+	ok = ok && IsEndOfTag(l)
+	if ok {
+		l.Emit(tagYear)
+		return true
+	}
+	l.Ignore()
 	return false
 }
 
@@ -179,68 +145,65 @@ func IsEnglishLetter(r rune) bool {
 	return r >= 'a' && r <= 'z'
 }
 
-// ParseA - audio
-func ParseA(lexer *TLexer) bool {
+// IsDiggit - check rune is diggit
+func IsDiggit(r rune) bool {
+	return r >= '0' && r <= '9'
+}
 
-	ok := lexer.Accept("a")
-	for lexer.Peek() != '_' && lexer.Peek() != runeEOF && ok {
-		// ok = ok && lexer.AcceptAnyEnglish()
-		ok = ok && lexer.AcceptFn(IsEnglishLetter)
-		log.Info(ok)
-		ok = ok && lexer.Accept("12345678")
-		log.Info(ok, "\n")
-	}
-	if ok {
-		lexer.Emit(tagA)
+// IsEndOfTag -
+func IsEndOfTag(l *lexer.TLexer) bool {
+	if l.Peek() == '_' || l.Peek() == runeEOF {
 		return true
 	}
-	lexer.Ignore()
 	return false
 }
 
-// func ParseT(lexer *TLexer) bool {
-// 	ok := lexer.Accept("m")
-// 	for lexer.Peek() != '_' || lexer.Peek() != '.' {
-// 		ok = ok && lexer.AcceptAnyEnglish()
-// 	}
-// 	if ok {
-// 		lexer.Emit(tagT)
-// 		return true
-// 	}
-// 	lexer.Ignore()
-// 	return false
+// func ParseT(l *TLexer) bool {
+// 	ok := l.Accept("m")
+// for l.Peek() != '_' || l.Peek() != '.' {
+// 	ok = ok && l.AcceptAnyEnglish()
+// }
+// if ok {
+// 	l.Emit(tagT)
+// 	return true
+// }
+// 	l.Ignore()
+// return false
 // }
 
 // ParseUnknown -
-func ParseUnknown(lexer *TLexer) {
-	lexer.AcceptWhileNot(separators)
-	lexer.Emit(tagUnknown)
+func ParseUnknown(l *lexer.TLexer) {
+	l.AcceptWhileNot(separators)
+	l.Emit(tagUnknown)
 }
 
 // Parse -
-func Parse(s string) []TTag {
-	lexer := NewLexer(s)
-
+func Parse(s string) []lexer.TTag {
+	l := lexer.New(s)
 	for {
 		ok := false
-		lexer.AcceptWhile("_")
-		lexer.Emit(tagSeparator)
-		if lexer.Peek() == runeEOF {
-			return lexer.Result()
+		l.AcceptWhile("_")
+		l.Emit(tagSeparator)
+		if l.Peek() == runeEOF {
+			return l.Result()
 		}
 
-		switch lexer.Peek() {
+		switch l.Peek() {
 		case 'q':
-			ok = ParseQ(lexer)
+			ok = ParseQ(l)
 		case 's', 'h':
-			ok = ParseD(lexer)
+			ok = ParseD(l)
 		case 'a':
-			ok = ParseA(lexer)
+			ok = ParseA(l)
+		case 'm':
+			ok = ParseM(l)
+		case '1', '2':
+			ok = ParseY(l)
 		} //end switch
 		if !ok {
-			ParseUnknown(lexer)
+			ParseUnknown(l)
 		}
-		log.Warning(nil, fmt.Sprintf("%v %v", lexer.pos, lexer.Peek()))
+		// log.Warning(nil, fmt.Sprintf("%v %v", l.pos, l.Peek()))
 
 	}
 }
