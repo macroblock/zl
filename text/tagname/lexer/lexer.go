@@ -15,18 +15,11 @@ type TTagType int
 
 // TLexer -
 type TLexer struct {
-	start  int
-	pos    int
-	width  int
-	src    string
-	canRB  bool
-	result []TTag
-}
-
-// TTag -
-type TTag struct {
-	Type  TTagType
-	Value string
+	start int
+	pos   int
+	width int
+	src   string
+	canRB bool
 }
 
 const runeEOF rune = 0
@@ -76,6 +69,14 @@ func (o *TLexer) Accept(s string) bool {
 	return false
 }
 
+// AcceptPeek -
+func (o *TLexer) AcceptPeek(s string) bool {
+	if strings.IndexRune(s, o.Peek()) >= 0 {
+		return true
+	}
+	return false
+}
+
 //AcceptFn - asdfasdf
 func (o *TLexer) AcceptFn(fn func(r rune) bool) bool {
 	if fn(o.Next()) {
@@ -110,18 +111,15 @@ func (o *TLexer) AcceptWhileNot(s string) {
 }
 
 //Emit -
-func (o *TLexer) Emit(tagid TTagType) {
-	o.result = append(o.result, TTag{Type: tagid, Value: o.src[o.start:o.pos]})
+func (o *TLexer) Emit() string {
+	// o.result = append(o.result, TTag{Type: tagid, Value: o.src[o.start:o.pos]})
+	ret := o.src[o.start:o.pos]
 	o.start = o.pos
+	return ret
 }
 
 //Ignore -
 func (o *TLexer) Ignore() {
 	o.pos = o.start
 	o.width = 0
-}
-
-//Result -
-func (o *TLexer) Result() []TTag {
-	return o.result
 }
