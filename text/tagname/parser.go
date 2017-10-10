@@ -30,7 +30,6 @@ func (o *TParser) Accept(tagid TTagType, funcs ...TTestFn) bool {
 	for _, fn := range funcs {
 		ok = ok && fn()
 	}
-
 	if ok {
 		o.Emit(tagid)
 		return true
@@ -72,14 +71,16 @@ func (o *TParser) IsLetter() TTestFn {
 func (o *TParser) SubAccept(funcs ...TTestFn) TTestFn {
 	return func() bool {
 		ok := true
+		var pos int
 		for ok {
 			for _, fn := range funcs {
 				if f := fn(); !f {
+					o.lexer.SetPos(pos)
 					return ok
 				}
 			}
+			pos = o.lexer.Pos()
 		}
-
 		return ok
 	}
 }
@@ -116,24 +117,6 @@ func IsDiggit(r rune) bool {
 	return r >= '0' && r <= '9'
 }
 
-// ParseA - audio
-func (o *TParser) ParseA() bool {
-	ok := o.lexer.Accept("a")
-	for o.lexer.Peek() != '_' && o.lexer.Peek() != runeEOF && ok {
-		// ok = ok && l.AcceptAnyEnglish()
-		ok = ok && o.lexer.AcceptFn(IsEnglishLetter)
-		log.Info(ok)
-		ok = ok && o.lexer.Accept("12345678")
-		log.Info(ok, "\n")
-	}
-	if ok {
-		o.Emit(tagAudio)
-		return true
-	}
-	o.lexer.Ignore()
-	return false
-}
-
 // IsEndOfTag -
 func (o *TParser) IsEndOfTag() bool {
 	if o.lexer.Peek() == '_' || o.lexer.Peek() == runeEOF {
@@ -147,6 +130,11 @@ func (o *TParser) ParseUnknown() {
 	o.lexer.AcceptWhileNot(separators)
 	o.Emit(tagUnknown)
 }
+
+// func (o *TParser) ParseName() {
+// 	o.lexer.AcceptWhileNot(separators)
+// 	o.Emit(tagName)
+// }
 
 //Result -
 func (o *TParser) Result() []TTag {

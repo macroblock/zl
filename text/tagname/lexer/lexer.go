@@ -123,3 +123,14 @@ func (o *TLexer) Ignore() {
 	o.pos = o.start
 	o.width = 0
 }
+
+//Pos - return pos of lexer
+func (o *TLexer) Pos() int {
+	return o.pos
+}
+
+//SetPos  - set pos to i
+func (o *TLexer) SetPos(i int) {
+	o.pos = i
+	o.width = 0
+}

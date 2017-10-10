@@ -68,7 +68,6 @@ var list []string
 // Parse -
 func Parse(s string) []TTag {
 	p := NewParser(s)
-
 	for {
 		ok := false
 		p.lexer.AcceptWhile("_")
@@ -83,18 +82,20 @@ func Parse(s string) []TTag {
 		case 's', 'h':
 			ok = p.Accept(tagVideoDefinition, p.Is("sh"), p.Is("d"), p.Check(separators))
 		case 'a':
-			// ok = p.ParseA()
 			ok = p.Accept(tagAudio, p.Is("a"), p.SubAccept(p.Is("er"), p.Is("26")), p.Is("n"), p.Check(separators))
 		case 'm':
 			ok = p.Accept(tagMeta, p.Is("m"), p.WhileNotSeparator(), p.Check(separators))
-		case '1', '2':
+		case '0', '1', '2', '3', '6':
 			ok = p.Accept(tagYear, p.Is("12"), p.IsDiggit(), p.IsDiggit(), p.IsDiggit(), p.Check(separators))
+			// ok = p.Accept(tagAge, p.SubAccept(p.IsDiggit(), p.IsDiggit()), p.Check(separators))
+		default:
+			ok = p.Accept(tagName, p.SubAccept(p.WhileNotSeparator()), p.Check(separators))
+
 		} //end switch
 		if !ok {
 			ok = p.Accept(tagUnknown, p.WhileNot(separators))
 		}
 		// log.Warning(nil, fmt.Sprintf("%v %v", l.pos, l.Peek()))
-
 	}
 }
 

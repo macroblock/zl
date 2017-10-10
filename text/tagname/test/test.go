@@ -24,8 +24,8 @@ func main() {
 	log.Info("programmstart")
 	log.Error(nil, "programmstart")
 	log.Warning(nil, "egega';,")
-	res := "_hd_1994_ae2r6n_aede6n_ar2een_ae2rn_q0w0_mxыфы_q1s3__q3w2_q2s2_q1w1_masdlkfjasd_q2w1"
-	log.Info("Parsing: ", res)
+	res := "_hd_Blalala_bla_bla_1994__ae2r6n_aede6n_ar2een_ae2rn_q0w0_mxыфы_q1s3_q3w2_q2s2_q1w1_masdlkfjasd_q2w1"
+	log.Info("Parsing ", res)
 	result := tagname.Parse(res)
 	for _, tag := range result {
 		log.Info(tag.Type, ": \"", tag.Value, "\"")
