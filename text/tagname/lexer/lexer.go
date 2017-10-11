@@ -129,7 +129,7 @@ func (o *TLexer) Pos() int {
 	return o.pos
 }
 
-//SetPos  - set pos to i
+//SetPos -
 func (o *TLexer) SetPos(i int) {
 	o.pos = i
 	o.width = 0

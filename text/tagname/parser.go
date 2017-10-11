@@ -26,11 +26,7 @@ func (o *TParser) Emit(tid TTagType) {
 
 // Accept -
 func (o *TParser) Accept(tagid TTagType, funcs ...TTestFn) bool {
-	ok := true
-	for _, fn := range funcs {
-		ok = ok && fn()
-	}
-	if ok {
+	if CheckSeq(funcs...) {
 		o.Emit(tagid)
 		return true
 	}
@@ -42,6 +38,28 @@ func (o *TParser) Accept(tagid TTagType, funcs ...TTestFn) bool {
 func (o *TParser) Is(s string) TTestFn {
 	return func() bool {
 		return o.lexer.Accept(s)
+	}
+}
+
+//MustIs - must compare all rune
+func (o *TParser) MustIs(s string) TTestFn {
+	return func() bool {
+		// pos := o.lexer.Pos()
+		// log.Info("pos ", pos)
+		// o.WhileNotSeparator()
+		// pos1 := o.lexer.Pos()
+		// log.Info("pos1 ", pos1)
+		// if pos != pos1 {
+		// 	return false
+		// }
+
+		for i := range s {
+			log.Info(s[i])
+			if !o.lexer.Accept(string(s[i])) {
+				return false
+			}
+		}
+		return true
 	}
 }
 
@@ -67,21 +85,43 @@ func (o *TParser) IsLetter() TTestFn {
 	}
 }
 
-// SubAccept -
+// CheckSeq -
+func CheckSeq(funcs ...TTestFn) bool {
+	for _, fn := range funcs {
+		if !fn() {
+			return false
+		}
+	}
+	return true
+}
+
+// SubAccept - accept if all fn true
 func (o *TParser) SubAccept(funcs ...TTestFn) TTestFn {
 	return func() bool {
-		ok := true
-		var pos int
-		for ok {
-			for _, fn := range funcs {
-				if f := fn(); !f {
-					o.lexer.SetPos(pos)
-					return ok
-				}
+		ok := false
+		for {
+			p := o.lexer.Pos()
+			if !CheckSeq(funcs...) {
+				o.lexer.SetPos(p)
+				return ok
 			}
-			pos = o.lexer.Pos()
+			ok = true
 		}
-		return ok
+	}
+}
+
+//OrAccept - accept if any fn true
+func (o *TParser) OrAccept(funcs ...TTestFn) TTestFn {
+	return func() bool {
+		for _, fn := range funcs {
+			f := fn()
+			if f {
+				log.Info(f)
+				return true
+			}
+		}
+		log.Info("false")
+		return false
 	}
 }
 
