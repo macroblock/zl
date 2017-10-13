@@ -102,19 +102,43 @@ func (o *TLog) Log(level loglevel.TLevel, resetFilter loglevel.TFilter, err erro
 	}
 }
 
+func getErrorCondition(condition interface{}) (bool, error) {
+	err := error(nil)
+	ok := false
+	switch v := condition.(type) {
+	case nil:
+	case bool:
+		ok = v
+	case error:
+		err = v
+	default:
+		ok = true
+	}
+	return ok, err
+}
+
 // Panic -
-func (o *TLog) Panic(err error, text ...interface{}) {
-	o.Log(loglevel.Panic, 0, err, text...)
+func (o *TLog) Panic(condition interface{}, text ...interface{}) {
+	ok, err := getErrorCondition(condition)
+	if ok || err != nil {
+		o.Log(loglevel.Panic, 0, err, text...)
+	}
 }
 
 // Error -
-func (o *TLog) Error(err error, text ...interface{}) {
-	o.Log(loglevel.Error, 0, err, text...)
+func (o *TLog) Error(condition interface{}, text ...interface{}) {
+	ok, err := getErrorCondition(condition)
+	if ok || err != nil {
+		o.Log(loglevel.Error, 0, err, text...)
+	}
 }
 
 // Warning -
-func (o *TLog) Warning(err error, text ...interface{}) {
-	o.Log(loglevel.Warning, 0, err, text...)
+func (o *TLog) Warning(condition interface{}, text ...interface{}) {
+	ok, err := getErrorCondition(condition)
+	if ok || err != nil {
+		o.Log(loglevel.Warning, 0, err, text...)
+	}
 }
 
 // Reset -
