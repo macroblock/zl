@@ -26,7 +26,7 @@ func New() (*THal, error) {
 	hal = &THal{}
 
 	err := sdl.Init(sdl.INIT_EVERYTHING)
-	log.Error(error(err), "New: sdl.Init")
+	log.Error(err, "New: sdl.Init")
 
 	err = ttf.Init()
 	log.Error(err, "New: ttf.Init")
@@ -42,7 +42,7 @@ func New() (*THal, error) {
 // Close -
 func (o *THal) Close() {
 	if hal == nil {
-		log.Warning(true, "Close: HAL was not initialized yet")
+		log.Warning(true, "Close: HAL isn't initialized yet")
 		return
 	}
 	//for _, root := range glob.sysWindows {
@@ -54,7 +54,6 @@ func (o *THal) Close() {
 		hal.renderer.Destroy()
 		hal.renderer = nil
 	}
-
 	if hal.window != nil {
 		hal.window.Destroy()
 		hal.window = nil
