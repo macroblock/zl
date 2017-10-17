@@ -2,6 +2,7 @@ package hal
 
 import (
 	"github.com/macroblock/zl/core/zlog"
+	"github.com/macroblock/zl/ui/event"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -64,13 +65,7 @@ func (o *THal) Close() {
 	sdl.Quit()
 }
 
-// IEvent -
-type IEvent interface {
-	String() string
-	Key() string
-}
-
 // Event -
-func (o *THal) Event() IEvent {
+func (o *hal.THal) Event() event.IEvent {
 	return nil
 }
