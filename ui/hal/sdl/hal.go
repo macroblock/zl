@@ -66,6 +66,15 @@ func (o *THal) Close() {
 }
 
 // Event -
-func (o *hal.THal) Event() event.IEvent {
+func (o *THal) Event() event.IEvent {
+	e := sdl.PollEvent()
+	if e == nil {
+		return nil
+	}
+	switch t := e.(type) {
+	case *sdl.KeyDownEvent:
+		event := event.NewKeyboard(rune(t.Keysym.Sym), int(t.Keysym.Mod))
+		return event
+	}
 	return nil
 }

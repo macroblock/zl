@@ -1,6 +1,9 @@
 package event
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type (
 	// IEvent -
@@ -17,6 +20,13 @@ type (
 		time time.Time
 	}
 )
+
+// NewEvent -
+func NewEvent() *TEvent {
+	ret := &TEvent{time: time.Now()}
+	ret.IEvent = ret
+	return ret
+}
 
 // Time -
 func (o *TEvent) Time() time.Time {
@@ -41,7 +51,39 @@ func (o *TEvent) String() string {
 // TKeyboard -
 type TKeyboard struct {
 	TEvent
+	ch   rune
 	scan int
 	mod  int
-	ch   rune
+}
+
+// NewKeyboard -
+func NewKeyboard(ch rune, mod int) *TKeyboard {
+	ret := &TKeyboard{TEvent: *NewEvent(), ch: ch, mod: mod}
+	ret.IEvent = ret
+	return ret
+}
+
+// Type -
+func (o *TKeyboard) Type() string {
+	return "keyboard"
+}
+
+// Rune -
+func (o *TKeyboard) Rune() rune {
+	return o.ch
+}
+
+// ScanCode -
+func (o *TKeyboard) ScanCode() int {
+	return o.scan
+}
+
+// EventKey -
+func (o *TKeyboard) EventKey() string {
+	return fmt.Sprintf("%q", o.ch)
+}
+
+// String -
+func (o *TKeyboard) String() string {
+	return fmt.Sprintf("%v: %q %v", o.TEvent.String(), o.ch, o.mod)
 }
