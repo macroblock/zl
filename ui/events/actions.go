@@ -1,11 +1,4 @@
-package action
-
-import "github.com/macroblock/zl/ui/event"
-
-// TActionMap -
-type TActionMap struct {
-	byName map[string]IAction
-}
+package events
 
 type (
 	// TAction -
@@ -18,16 +11,26 @@ type (
 	}
 
 	// TEventHandler -
-	TEventHandler func(ev event.IEvent) bool
+	TEventHandler func(ev IEvent) bool
 
 	// IAction -
 	IAction interface {
 		Name() string
 		EventKey() string
 		Description() string
-		Do(ev event.IEvent) bool
+		Do(ev IEvent) bool
 	}
 )
+
+// NewAction -
+func NewAction(name, eventKey, descr string, handler TEventHandler) IAction {
+	act := &TAction{}
+	act.name = name
+	act.eventKey = eventKey
+	act.description = descr
+	act.handler = handler
+	return act
+}
 
 // Name -
 func (o *TAction) Name() string {
@@ -45,7 +48,7 @@ func (o *TAction) Description() string {
 }
 
 // Do -
-func (o *TAction) Do(ev event.IEvent) bool {
+func (o *TAction) Do(ev IEvent) bool {
 	if o.handler == nil {
 		return false
 	}
