@@ -39,11 +39,12 @@ func Translit(text string) (string, error) {
 	}
 	log.Debug("transform chain \"" + src + "\"")
 	for _, r := range src {
-		x := ruseng[r]
-		if x == "" && strings.Index(eng, string(r)) != -1 {
+		x, ok := ruseng[r]
+		if !ok && strings.Index(eng, string(r)) != -1 {
 			x = string(r)
+			ok = true
 		}
-		if x == "" {
+		if !ok {
 			sep = underscore
 		} else {
 			ret += sep + x
