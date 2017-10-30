@@ -58,6 +58,12 @@ func main() {
 			log.Error(err, "can not get filestat: ", path)
 			continue
 		}
+		err = file.Close()
+		if err != nil {
+			log.Error(err, "can not close file: ", path)
+			continue
+		}
+
 		if !stat.IsDir() {
 			ext = filepath.Ext(path)
 		}
