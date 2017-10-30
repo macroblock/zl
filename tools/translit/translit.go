@@ -50,12 +50,12 @@ func main() {
 
 		file, err := os.Open(path)
 		if err != nil {
-			log.Error(err, "connot open file: ", path)
+			log.Error(err, "can not open file: ", path)
 			continue
 		}
 		stat, err := file.Stat()
 		if err != nil {
-			log.Error(err, "connot get filestat: ", path)
+			log.Error(err, "can not get filestat: ", path)
 			continue
 		}
 		if !stat.IsDir() {
@@ -65,7 +65,7 @@ func main() {
 		name, _ = text.Translit(name)
 		err = os.Rename(path, dir+name+ext)
 		if err != nil {
-			log.Error(err, "cannot rename file")
+			log.Error(err, "can not rename file")
 		} else {
 			log.Notice("result: " + dir + name + ext)
 		}
