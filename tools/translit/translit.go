@@ -46,21 +46,24 @@ func main() {
 		log.Info("")
 		log.Info("rename: " + path)
 		dir, name := filepath.Split(path)
-
 		ext := ""
-		if file, err := os.Open(path); err != nil {
-			if stat, err2 := file.Stat(); err != nil {
-				if !stat.IsDir() {
-					ext = filepath.Ext(path)
-				}
-				err = err2
-			}
-		} else {
-			log.Error(err, "connot get filestat")
+
+		file, err := os.Open(path)
+		if err != nil {
+			log.Error(err, "connot open file: ", path)
+			continue
+		}
+		stat, err := file.Stat()
+		if err != nil {
+			log.Error(err, "connot get filestat: ", path)
+			continue
+		}
+		if !stat.IsDir() {
+			ext = filepath.Ext(path)
 		}
 		name = strings.TrimSuffix(name, ext)
 		name, _ = text.Translit(name)
-		err := os.Rename(path, dir+name+ext)
+		err = os.Rename(path, dir+name+ext)
 		if err != nil {
 			log.Error(err, "cannot rename file")
 		} else {
