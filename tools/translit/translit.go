@@ -40,7 +40,7 @@ func main() {
 
 	log.Debug("log initialized")
 	if len(os.Args) <= 1 {
-		log.Warning(nil, "not enough parameters")
+		log.Warning(true, "not enough parameters")
 	}
 	for _, path := range os.Args[1:] {
 		log.Info("")
