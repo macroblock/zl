@@ -14,25 +14,25 @@ import (
 
 var (
 	log       = zlog.Instance("main")
-	throw     = log.Catcher()
+	retif     = log.Catcher()
 	logFilter = loglevel.Warning.OrLower()
 )
 
 func doProcess(path string) {
-	defer throw.Catch()
+	defer retif.Catch()
 	log.Info("")
 	log.Info("rename: " + path)
 	dir, name := filepath.Split(path)
 	ext := ""
 
 	file, err := os.Open(path)
-	throw.Error(err, "can not open file: ", path)
+	retif.Error(err, "can not open file: ", path)
 
 	stat, err := file.Stat()
-	throw.Error(err, "can not get filestat: ", path)
+	retif.Error(err, "can not get filestat: ", path)
 
 	err = file.Close()
-	throw.Error(err, "can not close file: ", path)
+	retif.Error(err, "can not close file: ", path)
 
 	if !stat.IsDir() {
 		ext = filepath.Ext(path)
@@ -40,7 +40,7 @@ func doProcess(path string) {
 	name = strings.TrimSuffix(name, ext)
 	name, _ = text.Translit(name)
 	err = os.Rename(path, dir+name+ext)
-	throw.Error(err, "can not rename file")
+	retif.Error(err, "can not rename file")
 
 	log.Notice("result: " + dir + name + ext)
 }
