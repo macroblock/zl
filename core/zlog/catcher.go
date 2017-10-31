@@ -19,6 +19,15 @@ func (o *TCatcher) Catch() {
 	}
 }
 
+//Return -
+func (o *TCatcher) Return(condition interface{}) {
+	ok, err := getErrorCondition(condition)
+	if ok || err != nil {
+		// o.log.Log(loglevel.Panic, 0, err, text...)
+		panic(catcherMessage)
+	}
+}
+
 // Panic -
 func (o *TCatcher) Panic(condition interface{}, text ...interface{}) {
 	ok, err := getErrorCondition(condition)
