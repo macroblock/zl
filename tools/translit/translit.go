@@ -14,8 +14,36 @@ import (
 
 var (
 	log       = zlog.Instance("main")
+	throw     = log.Catcher()
 	logFilter = loglevel.Warning.OrLower()
 )
+
+func doProcess(path string) {
+	defer throw.Catch()
+	log.Info("")
+	log.Info("rename: " + path)
+	dir, name := filepath.Split(path)
+	ext := ""
+
+	file, err := os.Open(path)
+	throw.Error(err, "can not open file: ", path)
+
+	stat, err := file.Stat()
+	throw.Error(err, "can not get filestat: ", path)
+
+	err = file.Close()
+	throw.Error(err, "can not close file: ", path)
+
+	if !stat.IsDir() {
+		ext = filepath.Ext(path)
+	}
+	name = strings.TrimSuffix(name, ext)
+	name, _ = text.Translit(name)
+	err = os.Rename(path, dir+name+ext)
+	throw.Error(err, "can not rename file")
+
+	log.Notice("result: " + dir + name + ext)
+}
 
 func main() {
 	log.Add(
@@ -43,37 +71,6 @@ func main() {
 		log.Warning(true, "not enough parameters")
 	}
 	for _, path := range os.Args[1:] {
-		log.Info("")
-		log.Info("rename: " + path)
-		dir, name := filepath.Split(path)
-		ext := ""
-
-		file, err := os.Open(path)
-		if err != nil {
-			log.Error(err, "can not open file: ", path)
-			continue
-		}
-		stat, err := file.Stat()
-		if err != nil {
-			log.Error(err, "can not get filestat: ", path)
-			continue
-		}
-		err = file.Close()
-		if err != nil {
-			log.Error(err, "can not close file: ", path)
-			continue
-		}
-
-		if !stat.IsDir() {
-			ext = filepath.Ext(path)
-		}
-		name = strings.TrimSuffix(name, ext)
-		name, _ = text.Translit(name)
-		err = os.Rename(path, dir+name+ext)
-		if err != nil {
-			log.Error(err, "can not rename file")
-		} else {
-			log.Notice("result: " + dir + name + ext)
-		}
+		doProcess(path)
 	}
 }

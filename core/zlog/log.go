@@ -160,3 +160,8 @@ func (o *TLog) Info(text ...interface{}) {
 func (o *TLog) Debug(text ...interface{}) {
 	o.Log(loglevel.Debug, 0, nil, text...)
 }
+
+// Catcher -
+func (o *TLog) Catcher() *TCatcher {
+	return &TCatcher{log: o}
+}
