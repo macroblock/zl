@@ -2,10 +2,12 @@ package hal
 
 import (
 	"github.com/macroblock/zl/core/zlog"
-	"github.com/macroblock/zl/ui/event"
+	"github.com/macroblock/zl/ui/events"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
+
+import "C"
 
 var log = zlog.Instance("zl/sdl")
 
@@ -66,15 +68,20 @@ func (o *THal) Close() {
 }
 
 // Event -
-func (o *THal) Event() event.IEvent {
+func (o *THal) Event() events.IEvent {
 	e := sdl.PollEvent()
 	if e == nil {
 		return nil
 	}
 	switch t := e.(type) {
 	case *sdl.KeyDownEvent:
-		event := event.NewKeyboard(rune(t.Keysym.Sym), int(t.Keysym.Mod))
+		event := events.NewKeyboardEvent(rune(t.Keysym.Sym), int(t.Keysym.Mod))
 		return event
+	case *sdl.DropEvent:
+		if t.Type == sdl.DROPFILE {
+			event := events.NewDropFileEvent(t.File) //C.GoString((*C.char)(t.File)))
+			return event
+		}
 	}
 	return nil
 }

@@ -92,3 +92,31 @@ func (o *TKeyboardEvent) String() string {
 	}
 	return fmt.Sprintf(format, o.TEvent.String(), o.ch, o.mod)
 }
+
+// TDropFileEvent -
+type TDropFileEvent struct {
+	TEvent
+	content string
+}
+
+// NewDropFileEvent -
+func NewDropFileEvent(s string) *TDropFileEvent {
+	ret := &TDropFileEvent{TEvent: *NewEvent(), content: s}
+	ret.IEvent = ret
+	return ret
+}
+
+// Type -
+func (o *TDropFileEvent) Type() string {
+	return "drop file"
+}
+
+// Content -
+func (o *TDropFileEvent) Content() string {
+	return o.content
+}
+
+// String -
+func (o *TDropFileEvent) String() string {
+	return fmt.Sprintf("%v %v", o.TEvent.String(), o.content)
+}
