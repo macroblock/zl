@@ -2,6 +2,7 @@ package hal
 
 import (
 	"github.com/macroblock/zl/core/zlog"
+	"github.com/macroblock/zl/types/vector"
 	"github.com/macroblock/zl/ui/events"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
@@ -15,8 +16,7 @@ var hal = (*THal)(nil)
 
 // THal -
 type THal struct {
-	window   *sdl.Window
-	renderer *sdl.Renderer
+	outputs vector.TVector
 }
 
 // New -
@@ -36,35 +36,34 @@ func New() (*THal, error) {
 
 	InitFonts()
 
-	hal.window, hal.renderer, err = sdl.CreateWindowAndRenderer(640, 480, sdl.WINDOW_SHOWN|sdl.WINDOW_RESIZABLE)
-	log.Error(err, "New: sdl.CreateWindowAndRenderer")
-
 	return hal, nil
 }
 
 // Close -
 func (o *THal) Close() {
 	if hal == nil {
-		log.Warning(true, "Close: HAL isn't initialized yet")
+		log.Warning(true, "THal.Close: HAL isn't initialized yet")
 		return
 	}
-	//for _, root := range glob.sysWindows {
-	//	root.Close()
-	//}
-	//glob.rootWindows = nil
-
-	if hal.renderer != nil {
-		hal.renderer.Destroy()
-		hal.renderer = nil
+	for o.outputs.Len() > 0 {
+		v, err := o.outputs.Back()
+		log.Error(err, "THal.Close: something wrong")
+		output, ok := v.(*TOutput)
+		log.Error(!ok, "THal.Close: object is not TOutput")
+		output.Close()
 	}
-	if hal.window != nil {
-		hal.window.Destroy()
-		hal.window = nil
-	}
-
 	hal = nil
 	ttf.Quit()
 	sdl.Quit()
+}
+
+// NewOutput -
+func (o *THal) NewOutput() (*TOutput, error) {
+	win, r, err := sdl.CreateWindowAndRenderer(640, 480, sdl.WINDOW_SHOWN|sdl.WINDOW_RESIZABLE)
+	log.Error(err, "New: sdl.CreateWindowAndRenderer")
+	ret := &TOutput{hal: o, window: win, renderer: r}
+	o.outputs.PushBack(ret)
+	return ret, err
 }
 
 // Event -
@@ -82,6 +81,6 @@ func (o *THal) Event() events.IEvent {
 			event := events.NewDropFileEvent(t.File) //C.GoString((*C.char)(t.File)))
 			return event
 		}
-	}
+	} // end of switch
 	return nil
 }

@@ -18,10 +18,6 @@ var log = zlog.Instance("main")
 
 var mem runtime.MemStats
 
-// func printStat() {
-// fmt.Printf("HeapAlloc: %v Loockups: %v MallocsUsing: %v\n", mem.HeapAlloc, mem.Lookups, mem.Mallocs-mem.Frees)
-// }
-
 func main() {
 	go http.ListenAndServe(":8080", nil)
 	log.Add(
@@ -30,18 +26,19 @@ func main() {
 			Done())
 
 	x, _ := hal.New()
-	x, _ = hal.New()
+	output, _ := x.NewOutput()
+	//x.NewOutput()
+	//x.NewOutput()
+	//x.NewOutput()
 
 	quit := false
-	// runtime.ReadMemStats(&mem)
-	// printStat()
 	for !quit {
 		ev := x.Event()
 		if ev == nil {
 			time.Sleep(1)
 			continue
 		}
-		runtime.ReadMemStats(&mem)
+
 		switch t := ev.(type) {
 		case *events.TKeyboardEvent:
 			fmt.Println(t.String())
@@ -51,9 +48,10 @@ func main() {
 		case *events.TDropFileEvent:
 			fmt.Println(t.String())
 		}
-		// printStat()
+		output.Draw()
 	}
+	//output.Close()
+	output.Close()
 
-	x.Close()
 	x.Close()
 }

@@ -33,6 +33,7 @@ func (o *TVector) PopFront() (interface{}, error) {
 		return nil, fmt.Errorf("TVector.PopFront(): storage is empty")
 	}
 	ret := o.data[0]
+	o.data[0] = nil
 	o.data = o.data[1:len(o.data)]
 	return ret, nil
 }
@@ -48,6 +49,7 @@ func (o *TVector) PopBack() (interface{}, error) {
 		return nil, fmt.Errorf("TVector.PopBack(): storage is empty")
 	}
 	ret := o.data[len(o.data)-1]
+	o.data[len(o.data)-1] = nil
 	o.data = o.data[:len(o.data)-1]
 	return ret, nil
 }
@@ -67,6 +69,7 @@ func (o *TVector) Remove(i int) (interface{}, error) {
 		return nil, fmt.Errorf("TVector.Remove(%v): index out of range (len: %v)", i, len(o.data))
 	}
 	ret := o.data[i]
+	o.data[i] = nil
 	o.data = append(o.data[:i], o.data[i+1:]...)
 	return ret, nil
 }
