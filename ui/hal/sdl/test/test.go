@@ -27,9 +27,9 @@ func main() {
 
 	x, _ := hal.New()
 	output, _ := x.NewOutput()
-	//x.NewOutput()
-	//x.NewOutput()
-	//x.NewOutput()
+	x.NewOutput()
+	x.NewOutput()
+	x.NewOutput()
 
 	quit := false
 	for !quit {

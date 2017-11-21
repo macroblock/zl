@@ -73,7 +73,7 @@ func (o *THal) Event() events.IEvent {
 		return nil
 	}
 	switch t := e.(type) {
-	case *sdl.KeyDownEvent:
+	case *sdl.KeyboardEvent:
 		event := events.NewKeyboardEvent(rune(t.Keysym.Sym), int(t.Keysym.Mod))
 		return event
 	case *sdl.DropEvent:
