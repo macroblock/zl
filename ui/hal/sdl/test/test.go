@@ -5,6 +5,8 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/veandco/go-sdl2/sdl"
+
 	"net/http"
 	_ "net/http/pprof"
 
@@ -26,6 +28,9 @@ func main() {
 			Done())
 
 	x, _ := hal.New()
+	v := sdl.Version{}
+	sdl.GetVersion(&v)
+	log.Info("version: ", v)
 	output, _ := x.NewOutput()
 	x.NewOutput()
 	x.NewOutput()
