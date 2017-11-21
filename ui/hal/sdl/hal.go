@@ -81,6 +81,8 @@ func (o *THal) Event() events.IEvent {
 			event := events.NewDropFileEvent(t.File) //C.GoString((*C.char)(t.File)))
 			return event
 		}
+	case *sdl.CommonEvent:
+		log.Warning(true, "default event: ", t.Type)
 	} // end of switch
 	return nil
 }
