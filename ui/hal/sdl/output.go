@@ -14,8 +14,11 @@ type TOutput struct {
 
 // Close -
 func (o *TOutput) Close() {
-	_, err := hal.outputs.Remove(hal.outputs.IndexOf(o))
-	log.Warning(err, "TOutput.Close(): output not found")
+	//_, err := hal.outputs.Remove(hal.outputs.IndexOf(o))
+	//log.Warning(err, "TOutput.Close(): output not found")
+	id := o.window.GetID()
+	log.Error(id == 0, "TOutput.Close(): Window.GetID")
+	delete(o.hal.outputs, id)
 
 	if o.renderer != nil {
 		o.renderer.Destroy()
@@ -30,6 +33,6 @@ func (o *TOutput) Close() {
 // Draw -
 func (o *TOutput) Draw() {
 	o.renderer.SetDrawColor(100, 200, 0, 255)
-	o.renderer.FillRect(&sdl.Rect{10, 10, 40, 15})
+	o.renderer.FillRect(&sdl.Rect{X: 10, Y: 10, W: 40, H: 15})
 	o.renderer.Present()
 }
