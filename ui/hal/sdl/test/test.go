@@ -32,16 +32,25 @@ func main() {
 	sdl.GetVersion(&v)
 	log.Info("version: ", v)
 	output, _ := x.NewOutput()
-	x.NewOutput()
-	x.NewOutput()
-	x.NewOutput()
+	// x.NewOutput()
+	// x.NewOutput()
+	// x.NewOutput()
 
 	quit := false
+	ev := events.IEvent(nil)
 	for !quit {
-		ev := x.Event()
-		if ev == nil {
+		output.Draw()
+		output.SetFillColor(100, 50, 25, 0)
+		output.SetDrawColor(100, 100, 100, 0)
+		output.Clear()
+		output.SetFillColor(50, 25, 50, 0)
+		output.FillRect(20, 20, 200, 50)
+		output.DrawRect(20, 20, 200, 50)
+		output.Flush()
+
+		for ev == nil {
 			time.Sleep(1)
-			continue
+			ev = x.Event()
 		}
 
 		switch t := ev.(type) {
@@ -53,7 +62,6 @@ func main() {
 		case *events.TDropFileEvent:
 			fmt.Println(t.String())
 		}
-		output.Draw()
 	}
 	//output.Close()
 	output.Close()
