@@ -86,7 +86,7 @@ func (o *THal) Event() events.IEvent {
 		return event
 	case *sdl.DropEvent:
 		if t.Type == sdl.DROPFILE {
-			event := events.NewDropFileEvent(t.File) //C.GoString((*C.char)(t.File)))
+			event := events.NewDropFileEvent(t.File)
 			return event
 		}
 	case *sdl.CommonEvent:

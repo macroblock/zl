@@ -88,6 +88,7 @@ func (o *TOutput) DrawRect(x1, y1, w, h int) {
 	o.renderer.DrawRect(&sdl.Rect{X: int32(x1), Y: int32(y1), W: int32(w), H: int32(h)})
 }
 
+// Flush -
 func (o *TOutput) Flush() {
 	o.renderer.Present()
 }
