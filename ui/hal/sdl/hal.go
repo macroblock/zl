@@ -67,8 +67,8 @@ func (o *THal) NewOutput() (*TOutput, error) {
 	log.Error(err, "NewOutput: sdl.CreateWindowAndRenderer")
 	ret := &TOutput{hal: o, window: win, renderer: r}
 	//o.outputs.PushBack(ret)
-	id := win.GetID()
-	log.Error(id == 0, "NewOutput: Window.GetID")
+	id, err := win.GetID()
+	log.Error(err, "NewOutput: Window.GetID")
 	o.outputs[id] = ret
 
 	return ret, err

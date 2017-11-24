@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"reflect"
 	"runtime"
 	"time"
 
@@ -67,4 +68,31 @@ func main() {
 	output.Close()
 
 	x.Close()
+	//str := 24
+	ptr := output
+	fmt.Printf("%T: %v\n", ptr, ptr)
+	setNil(&ptr)
+	fmt.Printf("%T: %v\n", ptr, ptr)
+	// println(math.Log10(255))
+	// println(math.Log10(100))
+	// println(int(math.Log10(math.MaxInt64)))
+	// maxInt := -1
+	// maxInt = int(uint(maxInt) >> 1)
+	// println(int(math.Log10(float64(maxInt))))
+}
+
+func setNil(i interface{}) {
+	t := reflect.TypeOf(i)
+	if t.Kind() != reflect.Ptr {
+		println("is not pointer")
+		return
+	}
+	t = t.Elem()
+	if t.Kind() != reflect.Ptr {
+		println("is not pointer to pointer")
+		return
+	}
+	t = t.Elem()
+	// v := reflect.ValueOf(i).Elem()
+	// v.Set(reflect.Zero(v.Type()))
 }

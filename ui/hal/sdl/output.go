@@ -18,8 +18,8 @@ type TOutput struct {
 func (o *TOutput) Close() {
 	//_, err := hal.outputs.Remove(hal.outputs.IndexOf(o))
 	//log.Warning(err, "TOutput.Close(): output not found")
-	id := o.window.GetID()
-	log.Error(id == 0, "TOutput.Close(): Window.GetID")
+	id, err := o.window.GetID()
+	log.Error(err, "TOutput.Close(): Window.GetID")
 	delete(o.hal.outputs, id)
 
 	if o.renderer != nil {
