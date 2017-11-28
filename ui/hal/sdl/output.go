@@ -104,7 +104,7 @@ func (o *TOutput) setFillColor() {
 }
 
 // DrawText -
-func (o *TOutput) DrawText(s string) {
+func (o *TOutput) DrawText(s string, x, y, w, h int) {
 	var surfaceText *sdl.Surface
 	var textureText *sdl.Texture
 	err := error(nil)
@@ -112,7 +112,8 @@ func (o *TOutput) DrawText(s string) {
 	log.Error(err != nil, "DrawText")
 	defer surfaceText.Free()
 	textureText, err = o.renderer.CreateTextureFromSurface(surfaceText)
-	o.renderer.Copy(textureText, nil, nil)
+	rect := &sdl.Rect{X: int32(x), Y: int32(y), W: int32(w), H: int32(h)}
+	o.renderer.Copy(textureText, nil, rect)
 }
 
 // Font -
