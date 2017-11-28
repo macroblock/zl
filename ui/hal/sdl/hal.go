@@ -65,7 +65,7 @@ func (o *THal) Close() {
 func (o *THal) NewOutput() (*TOutput, error) {
 	win, r, err := sdl.CreateWindowAndRenderer(640, 480, sdl.WINDOW_SHOWN|sdl.WINDOW_RESIZABLE)
 	log.Error(err, "NewOutput: sdl.CreateWindowAndRenderer")
-	ret := &TOutput{hal: o, window: win, renderer: r}
+	ret := &TOutput{hal: o, window: win, renderer: r, font: defaultFont}
 	//o.outputs.PushBack(ret)
 	id, err := win.GetID()
 	log.Error(err, "NewOutput: Window.GetID")
