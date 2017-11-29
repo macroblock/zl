@@ -6,23 +6,40 @@ import (
 	"github.com/veandco/go-sdl2/ttf"
 )
 
+// IOutput -
+type IOutput interface {
+	Close()
+	AddChild(child IWidget)
+	Draw()
+	SetDrawColor(r, g, b, a int)
+	SetFillColor(r, g, b, a int)
+	DrawText(s string, x, y int)
+	Font() *ttf.Font
+	SetFont(font *ttf.Font)
+	Clear()
+	FillRect(x1, y1, w, h int)
+	DrawLine(x1, y1, x2, y2 int)
+	DrawRect(x1, y1, w, h int)
+	Flush()
+}
+
 // TOutput -
 type TOutput struct {
 	hal        *THal
 	x, y, w, h int
 	window     *sdl.Window
 	renderer   *sdl.Renderer
-	fillColor  sdl.Color
-	drawColor  sdl.Color
+	fillColor  TColor
+	drawColor  TColor
 	children   vector.TVector
 	font       *ttf.Font
 }
 
+var _ IOutput = (*TOutput)(nil)
+
 // IWidget -
 type IWidget interface {
 	Draw()
-	Output() *TOutput
-	SetParent(widget IWidget)
 }
 
 // Close -
@@ -30,7 +47,11 @@ func (o *TOutput) Close() {
 	//_, err := hal.outputs.Remove(hal.outputs.IndexOf(o))
 	//log.Warning(err, "TOutput.Close(): output not found")
 	id, err := o.window.GetID()
+	log.Debug("close window id:", id)
 	log.Error(err, "TOutput.Close(): Window.GetID")
+	if o == Output() {
+		makeCurrent(stubOutput)
+	}
 	delete(o.hal.outputs, id)
 
 	if o.renderer != nil {
@@ -46,17 +67,6 @@ func (o *TOutput) Close() {
 // AddChild -
 func (o *TOutput) AddChild(child IWidget) {
 	o.children.PushBack(child)
-	child.SetParent(o)
-}
-
-// SetParent -
-func (o *TOutput) SetParent(widget IWidget) {
-	log.Panic(true, "SetParent() should not be called")
-}
-
-// Output -
-func (o *TOutput) Output() *TOutput {
-	return o
 }
 
 // Draw -
@@ -75,27 +85,24 @@ func (o *TOutput) Draw() {
 
 // SetDrawColor -
 func (o *TOutput) SetDrawColor(r, g, b, a int) {
-	if o == nil {
-		return
-	}
-	o.drawColor.R = uint8(r)
-	o.drawColor.G = uint8(g)
-	o.drawColor.B = uint8(b)
-	o.drawColor.A = uint8(a)
+	o.drawColor.SetRGBA(r, g, b, a)
+	// o.drawColor.R = uint8(r)
+	// o.drawColor.G = uint8(g)
+	// o.drawColor.B = uint8(b)
+	// o.drawColor.A = uint8(a)
 }
 
 // SetFillColor -
 func (o *TOutput) SetFillColor(r, g, b, a int) {
-	if o == nil {
-		return
-	}
-	o.fillColor.R = uint8(r)
-	o.fillColor.G = uint8(g)
-	o.fillColor.B = uint8(b)
-	o.fillColor.A = uint8(a)
+	o.fillColor.SetRGBA(r, g, b, a)
+	// o.fillColor.R = uint8(r)
+	// o.fillColor.G = uint8(g)
+	// o.fillColor.B = uint8(b)
+	// o.fillColor.A = uint8(a)
 }
 
 func (o *TOutput) setDrawColor() {
+
 	o.renderer.SetDrawColor(o.drawColor.R, o.drawColor.G, o.drawColor.B, o.drawColor.A)
 }
 
@@ -104,16 +111,18 @@ func (o *TOutput) setFillColor() {
 }
 
 // DrawText -
-func (o *TOutput) DrawText(s string, x, y, w, h int) {
+func (o *TOutput) DrawText(s string, x, y int) {
 	var surfaceText *sdl.Surface
 	var textureText *sdl.Texture
 	err := error(nil)
-	surfaceText, err = o.Font().RenderUTF8Blended(s, o.drawColor)
+	surfaceText, err = o.Font().RenderUTF8Blended(s, o.drawColor.Sdl())
 	log.Error(err != nil, "DrawText")
 	defer surfaceText.Free()
 	textureText, err = o.renderer.CreateTextureFromSurface(surfaceText)
-	rect := &sdl.Rect{X: int32(x), Y: int32(y), W: int32(w), H: int32(h)}
-	o.renderer.Copy(textureText, nil, rect)
+	rect := NewEmptyRect().
+		SetPos(x, y).
+		SetSize32(surfaceText.W, surfaceText.H)
+	o.renderer.Copy(textureText, nil, rect.Sdl())
 }
 
 // Font -
@@ -128,44 +137,34 @@ func (o *TOutput) SetFont(font *ttf.Font) {
 
 // Clear -
 func (o *TOutput) Clear() {
-	if o == nil {
-		return
-	}
 	o.setFillColor()
 	o.renderer.Clear()
 }
 
 // FillRect -
 func (o *TOutput) FillRect(x1, y1, w, h int) {
-	if o == nil {
-		return
-	}
 	o.setFillColor()
-	o.renderer.FillRect(&sdl.Rect{X: int32(x1), Y: int32(y1), W: int32(w), H: int32(h)})
+	// o.renderer.FillRect(&sdl.Rect{X: int32(x1), Y: int32(y1), W: int32(w), H: int32(h)})
+	rect := NewRect(x1, y1, w, h)
+	o.renderer.FillRect((*sdl.Rect)(rect))
+
 }
 
 // DrawLine -
 func (o *TOutput) DrawLine(x1, y1, x2, y2 int) {
-	if o == nil {
-		return
-	}
 	o.setDrawColor()
 	o.renderer.DrawLine(int32(x1), int32(y1), int32(x2), int32(y2))
 }
 
 // DrawRect -
 func (o *TOutput) DrawRect(x1, y1, w, h int) {
-	if o == nil {
-		return
-	}
 	o.setDrawColor()
-	o.renderer.DrawRect(&sdl.Rect{X: int32(x1), Y: int32(y1), W: int32(w), H: int32(h)})
+	// o.renderer.DrawRect(&sdl.Rect{X: int32(x1), Y: int32(y1), W: int32(w), H: int32(h)})
+	rect := NewRect(x1, y1, w, h)
+	o.renderer.DrawRect((*sdl.Rect)(rect))
 }
 
 // Flush -
 func (o *TOutput) Flush() {
-	if o == nil {
-		return
-	}
 	o.renderer.Present()
 }

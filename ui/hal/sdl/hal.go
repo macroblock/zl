@@ -11,7 +11,13 @@ import "C"
 
 var log = zlog.Instance("zl/sdl")
 
-var hal = (*THal)(nil)
+var hal *THal
+
+var currentOutput = stubOutput
+
+// Output -
+func Output() IOutput       { return currentOutput }
+func makeCurrent(o IOutput) { currentOutput = o }
 
 // THal -
 type THal struct {
@@ -62,7 +68,7 @@ func (o *THal) Close() {
 }
 
 // NewOutput -
-func (o *THal) NewOutput() (*TOutput, error) {
+func (o *THal) NewOutput() (IOutput, error) {
 	win, r, err := sdl.CreateWindowAndRenderer(640, 480, sdl.WINDOW_SHOWN|sdl.WINDOW_RESIZABLE)
 	log.Error(err, "NewOutput: sdl.CreateWindowAndRenderer")
 	ret := &TOutput{hal: o, window: win, renderer: r, font: defaultFont}
@@ -70,7 +76,8 @@ func (o *THal) NewOutput() (*TOutput, error) {
 	id, err := win.GetID()
 	log.Error(err, "NewOutput: Window.GetID")
 	o.outputs[id] = ret
-
+	makeCurrent(ret)
+	log.Debug("Create window id: ", id)
 	return ret, err
 }
 
@@ -93,4 +100,19 @@ func (o *THal) Event() events.IEvent {
 		log.Warning(true, "default event: ", t.Type)
 	} // end of switch
 	return nil
+}
+
+// Draw -
+func (o *THal) Draw() {
+
+	for id, output := range o.outputs {
+		log.Warning(output == nil, "output id: ", id, " is nil")
+		if output == nil {
+			continue
+		}
+		makeCurrent(output)
+		output.Draw()
+		output.Flush()
+	}
+	makeCurrent(stubOutput)
 }

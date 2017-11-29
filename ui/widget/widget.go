@@ -7,29 +7,23 @@ import (
 
 var log = zlog.Instance("widget")
 
-// TWidget
+// TWidget -
 type TWidget struct {
-	parent                         hal.IWidget
-	output                         *hal.TOutput
 	x, y                           int
 	w, h                           int
 	colorR, colorG, colorB, colorA int
 }
 
+//TTextWidget -
+type TTextWidget struct {
+	TWidget
+	s string
+}
+
 // NewWidget -
-func NewWidget() (*TWidget, error) {
+func NewWidget() *TWidget {
 	ret := &TWidget{w: 50, h: 50}
-	return ret, nil
-}
-
-// SetParent -
-func (o *TWidget) SetParent(widget hal.IWidget) {
-	o.parent = widget
-	o.output = widget.Output()
-}
-
-func (o *TWidget) Output() *hal.TOutput {
-	return o.output
+	return ret
 }
 
 // SetPos -
@@ -48,9 +42,32 @@ func (o *TWidget) SetColor(r, g, b, a int) {
 
 // Draw -
 func (o *TWidget) Draw() {
-	log.Error(o.output == nil, "Output is nil")
-	o.output.SetFillColor(o.colorR, o.colorG, o.colorB, o.colorA)
-	o.output.FillRect(o.x, o.y, o.w, o.h)
-	o.output.SetDrawColor(100, 100, 100, 255)
-	o.output.DrawRect(o.x, o.y, o.w, o.h)
+	scr := hal.Output()
+	log.Error(scr == nil, "Output is nil")
+	scr.SetFillColor(o.colorR, o.colorG, o.colorB, o.colorA)
+	scr.FillRect(o.x, o.y, o.w, o.h)
+	scr.SetDrawColor(100, 100, 100, 255)
+	scr.DrawRect(o.x, o.y, o.w, o.h)
+}
+
+// NewTextWidget -
+func NewTextWidget() *TTextWidget {
+	ret := &TTextWidget{TWidget: *NewWidget()}
+
+	return ret
+}
+
+func (o *TTextWidget) SetText(s string) {
+	o.s = s
+}
+
+// Draw -
+func (o *TTextWidget) Draw() {
+	scr := hal.Output()
+	log.Error(scr == nil, "Output is nil")
+	scr.SetFillColor(o.colorR, o.colorG, o.colorB, o.colorA)
+	scr.FillRect(o.x, o.y, o.w, o.h)
+	scr.DrawText(o.s, o.x, o.y)
+	scr.SetDrawColor(100, 100, 100, 255)
+	scr.DrawRect(o.x, o.y, o.w, o.h)
 }

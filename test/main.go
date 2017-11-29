@@ -16,32 +16,34 @@ func main() {
 	log.Add(zlogger.Build().Styler(zlogger.AnsiStyler).Done())
 	x, err := hal.New()
 	log.Error(err, "New hal")
-
 	out, err := x.NewOutput()
-	w, err := widget.NewWidget()
+	out2, err := x.NewOutput()
 
+	w := widget.NewWidget()
 	w.SetColor(255, 0, 0, 255)
 	w.SetPos(50, 50)
 	out.AddChild(w)
 
-	w, err = widget.NewWidget()
+	w = widget.NewWidget()
 	w.SetColor(0, 255, 0, 255)
 	w.SetPos(100, 50)
 	out.AddChild(w)
 
-	w, err = widget.NewWidget()
+	w = widget.NewWidget()
 	w.SetColor(0, 0, 255, 255)
 	w.SetPos(150, 50)
 	out.AddChild(w)
+
+	t := widget.NewTextWidget()
+	t.SetText("text")
+	t.SetColor(255, 0, 255, 255)
+	t.SetPos(200, 50)
+	out.AddChild(t)
 	event := events.IEvent(nil)
 	quit := false
 	for !quit {
-		out.SetFillColor(0, 0, 0, 0)
-		out.Clear()
-
-		out.Draw()
-		out.DrawText("text", 500, 200, 100, 50)
-		out.Flush()
+		x.Draw()
+		hal.Output().Flush()
 		for {
 			event = x.Event()
 			if event != nil {
@@ -60,5 +62,7 @@ func main() {
 
 	}
 	out.Close()
+	out2.Close()
+
 	x.Close()
 }
