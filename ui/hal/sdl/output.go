@@ -9,7 +9,7 @@ import (
 // IOutput -
 type IOutput interface {
 	Close()
-	AddChild(child IWidget)
+	AddChild(children ...interface{})
 	Draw()
 	SetDrawColor(r, g, b, a int)
 	SetFillColor(r, g, b, a int)
@@ -37,9 +37,19 @@ type TOutput struct {
 
 var _ IOutput = (*TOutput)(nil)
 
-// IWidget -
-type IWidget interface {
+// IDraw -
+type IDraw interface {
 	Draw()
+}
+
+// IChildren -
+type IChildren interface {
+	Children() []interface{}
+}
+
+// IBounds -
+type IBounds interface {
+	Bounds() *TRect
 }
 
 // Close -
@@ -65,44 +75,54 @@ func (o *TOutput) Close() {
 }
 
 // AddChild -
-func (o *TOutput) AddChild(child IWidget) {
-	o.children.PushBack(child)
+func (o *TOutput) AddChild(children ...interface{}) {
+	for _, child := range children {
+		o.children.PushBack(child)
+	}
+}
+
+func (o *TOutput) drawChildren(children []interface{}, dx, dy, w, h int) {
+
+	for _, i := range children {
+		if child, ok := i.(IDraw); ok {
+			child.Draw()
+		}
+		rect := NewEmptyRect()
+		if child, ok := i.(IBounds); ok {
+			rect = child.Bounds()
+			rect.Move(dx, dy)
+		}
+		oldRect := o.GetViewport()
+		o.SetViewport(rect)
+		rect = o.GetViewport()
+		if child, ok := i.(IChildren); ok {
+			if dx+rect.W() >= oldRect.W() || dy+rect.H() >= oldRect.H() {
+				log.Info("clip")
+				w -= dx
+				h -= dy
+			}
+			o.drawChildren(child.Children(), rect.X(), rect.Y(), w, h)
+		}
+		o.SetViewport(oldRect)
+	}
 }
 
 // Draw -
 func (o *TOutput) Draw() {
-	// o.renderer.SetDrawColor(100, 200, 0, 255)
-	// o.renderer.FillRect(&sdl.Rect{X: 10, Y: 10, W: 40, H: 15})
-	// o.renderer.Present()
-	for i := 0; i < o.children.Len(); i++ {
-		x, err := o.children.At(i)
-		log.Error(err, "Draw() something wrong")
-		child, ok := x.(IWidget)
-		log.Error(!ok, "Draw() something wrong 2")
-		child.Draw()
-	}
+	o.drawChildren(o.children.Data(), 0, 0, o.w, o.h)
 }
 
 // SetDrawColor -
 func (o *TOutput) SetDrawColor(r, g, b, a int) {
 	o.drawColor.SetRGBA(r, g, b, a)
-	// o.drawColor.R = uint8(r)
-	// o.drawColor.G = uint8(g)
-	// o.drawColor.B = uint8(b)
-	// o.drawColor.A = uint8(a)
 }
 
 // SetFillColor -
 func (o *TOutput) SetFillColor(r, g, b, a int) {
 	o.fillColor.SetRGBA(r, g, b, a)
-	// o.fillColor.R = uint8(r)
-	// o.fillColor.G = uint8(g)
-	// o.fillColor.B = uint8(b)
-	// o.fillColor.A = uint8(a)
 }
 
 func (o *TOutput) setDrawColor() {
-
 	o.renderer.SetDrawColor(o.drawColor.R, o.drawColor.G, o.drawColor.B, o.drawColor.A)
 }
 
@@ -146,8 +166,7 @@ func (o *TOutput) FillRect(x1, y1, w, h int) {
 	o.setFillColor()
 	// o.renderer.FillRect(&sdl.Rect{X: int32(x1), Y: int32(y1), W: int32(w), H: int32(h)})
 	rect := NewRect(x1, y1, w, h)
-	o.renderer.FillRect((*sdl.Rect)(rect))
-
+	o.renderer.FillRect(rect.Sdl())
 }
 
 // DrawLine -
@@ -161,7 +180,20 @@ func (o *TOutput) DrawRect(x1, y1, w, h int) {
 	o.setDrawColor()
 	// o.renderer.DrawRect(&sdl.Rect{X: int32(x1), Y: int32(y1), W: int32(w), H: int32(h)})
 	rect := NewRect(x1, y1, w, h)
-	o.renderer.DrawRect((*sdl.Rect)(rect))
+	o.renderer.DrawRect(rect.Sdl())
+
+}
+
+// SetViewport -
+func (o *TOutput) SetViewport(rect *TRect) {
+	o.renderer.SetViewport(rect.Sdl())
+}
+
+// GetViewport -
+func (o *TOutput) GetViewport() *TRect {
+	rect := NewEmptyRect()
+	o.renderer.GetViewport(rect.Sdl())
+	return rect
 }
 
 // Flush -

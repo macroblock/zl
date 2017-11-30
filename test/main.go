@@ -17,33 +17,50 @@ func main() {
 	x, err := hal.New()
 	log.Error(err, "New hal")
 	out, err := x.NewOutput()
-	out2, err := x.NewOutput()
-
-	w := widget.NewWidget()
-	w.SetColor(255, 0, 0, 255)
-	w.SetPos(50, 50)
-	out.AddChild(w)
-
-	w = widget.NewWidget()
-	w.SetColor(0, 255, 0, 255)
-	w.SetPos(100, 50)
-	out.AddChild(w)
-
-	w = widget.NewWidget()
-	w.SetColor(0, 0, 255, 255)
-	w.SetPos(150, 50)
-	out.AddChild(w)
-
-	t := widget.NewTextWidget()
-	t.SetText("text")
-	t.SetColor(255, 0, 255, 255)
-	t.SetPos(200, 50)
-	out.AddChild(t)
+	out.AddChild(
+		widget.NewWidget().
+			SetColor(255, 0, 0, 255).
+			SetPos(50, 50),
+		widget.NewWidget().
+			SetColor(0, 255, 0, 255).
+			SetPos(100, 50),
+		widget.NewWidget().
+			SetColor(0, 0, 255, 255).
+			SetPos(150, 50),
+		widget.NewTextWidget().
+			SetText("text").
+			SetColor(255, 0, 255, 255).
+			SetPos(200, 50),
+		widget.NewWidget().
+			SetColor(100, 0, 0, 255).
+			SetPos(200, 50).
+			SetSize(150, 300).
+			AddChild(
+				widget.NewTextWidget().
+					SetText("one").
+					SetColor(0, 100, 0, 255).
+					SetPos(5, 5),
+				widget.NewTextWidget().
+					SetText("two").
+					SetColor(0, 0, 100, 255).
+					SetPos(55, 5),
+				widget.NewWidget().
+					SetSize(100, 100).
+					SetPos(110, 5).
+					AddChild(
+						widget.NewTextWidget().
+							SetText("three").
+							SetColor(0, 0, 100, 255).
+							SetPos(5, 5),
+						widget.NewTextWidget().
+							SetText("four").
+							SetColor(0, 0, 100, 255).
+							SetPos(55, 5))))
 	event := events.IEvent(nil)
 	quit := false
 	for !quit {
 		x.Draw()
-		hal.Output().Flush()
+		// hal.Output().Flush()
 		for {
 			event = x.Event()
 			if event != nil {
@@ -61,8 +78,7 @@ func main() {
 		}
 
 	}
-	out.Close()
-	out2.Close()
 
 	x.Close()
+
 }

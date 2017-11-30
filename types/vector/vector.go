@@ -112,3 +112,8 @@ func (o *TVector) IndexOf(item interface{}) int {
 	}
 	return -1
 }
+
+// Data -
+func (o *TVector) Data() []interface{} {
+	return o.data[:]
+}

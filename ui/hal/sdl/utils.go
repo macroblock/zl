@@ -22,7 +22,9 @@ func destroy(o interface{}) {
 }
 
 // TRect -
-type TRect sdl.Rect
+type TRect struct {
+	Rect sdl.Rect
+}
 
 // NewEmptyRect -
 func NewEmptyRect() *TRect {
@@ -31,73 +33,104 @@ func NewEmptyRect() *TRect {
 
 // NewRect -
 func NewRect(x, y, w, h int) *TRect {
-	return &TRect{X: int32(x), Y: int32(y), W: int32(w), H: int32(h)}
+	return &TRect{sdl.Rect{X: int32(x), Y: int32(y), W: int32(w), H: int32(h)}}
 }
 
 // Sdl -
 func (o *TRect) Sdl() *sdl.Rect {
-	return (*sdl.Rect)(o)
+	return &o.Rect
 }
 
 // SetPos -
 func (o *TRect) SetPos(x, y int) *TRect {
-	o.X = int32(x)
-	o.Y = int32(y)
+	o.Rect.X = int32(x)
+	o.Rect.Y = int32(y)
 	return o
 }
 
 // SetSize -
 func (o *TRect) SetSize(w, h int) {
-	o.W = int32(w)
-	o.H = int32(h)
+	o.Rect.W = int32(w)
+	o.Rect.H = int32(h)
 }
 
 // SetBounds -
 func (o *TRect) SetBounds(x, y, w, h int) {
-	o.X = int32(x)
-	o.Y = int32(y)
-	o.W = int32(w)
-	o.H = int32(h)
+	o.Rect.X = int32(x)
+	o.Rect.Y = int32(y)
+	o.Rect.W = int32(w)
+	o.Rect.H = int32(h)
+}
+
+// Move -
+func (o *TRect) Move(dx, dy int) {
+	o.Rect.X += int32(dx)
+	o.Rect.Y += int32(dy)
 }
 
 // Pos -
-func (o *TRect) Pos() (x, y int) { return int(o.X), int(o.Y) }
+func (o *TRect) Pos() []int {
+	ret := []int{int(o.Rect.X), int(o.Rect.Y)}
+	return ret
+}
+
+// X -
+func (o *TRect) X() int {
+	return int(o.Rect.X)
+}
+
+// Y -
+func (o *TRect) Y() int {
+	return int(o.Rect.Y)
+}
+
+// W -
+func (o *TRect) W() int {
+	return int(o.Rect.W)
+}
+
+// H -
+func (o *TRect) H() int {
+	return int(o.Rect.H)
+}
 
 // Size -
-func (o *TRect) Size() (w, h int) { return int(o.W), int(o.H) }
+func (o *TRect) Size() (w, h int) { return int(o.Rect.W), int(o.Rect.H) }
 
 // Bounds -
-func (o *TRect) Bounds() (x, y, w, h int) { return int(o.X), int(o.Y), int(o.W), int(o.H) }
+func (o *TRect) Bounds() (x, y, w, h int) {
+	return int(o.Rect.X), int(o.Rect.Y), int(o.Rect.W), int(o.Rect.H)
+}
 
 // SetPos32 -
 func (o *TRect) SetPos32(x, y int32) {
-	o.X = x
-	o.Y = y
+	o.Rect.X = x
+	o.Rect.Y = y
 }
 
 // SetSize32 -
 func (o *TRect) SetSize32(w, h int32) *TRect {
-	o.W = w
-	o.H = h
+	o.Rect.W = w
+	o.Rect.H = h
 	return o
 }
 
 // SetBounds32 -
 func (o *TRect) SetBounds32(x, y, w, h int32) {
-	o.X = x
-	o.Y = y
-	o.W = w
-	o.H = h
+	o.Rect.X = x
+	o.Rect.Y = y
+	o.Rect.W = w
+	o.Rect.H = h
 }
 
 // Pos32 -
-func (o *TRect) Pos32() (x, y int32) { return o.X, o.Y }
+func (o *TRect) Pos32() (x, y int32) { return o.Rect.X, o.Rect.Y }
 
 // Size32 -
-func (o *TRect) Size32() (w, h int32) { return o.W, o.H }
+func (o *TRect) Size32() (w, h int32) { return o.Rect.W, o.Rect.H }
 
 // Bounds32 -
-func (o *TRect) Bounds32() (x, y, w, h int32) { return o.X, o.Y, o.W, o.H }
+func (o *TRect) Bounds32() (x, y, w, h int32) { return o.Rect.X, o.Rect.Y, o.Rect.W, o.Rect.H }
 
 // type TLine {x1,y1,x2,y2 int}  //линии??
 
@@ -125,4 +158,14 @@ func (o *TColor) SetRGBA(r, g, b, a int) {
 	o.G = uint8(g)
 	o.B = uint8(b)
 	o.A = uint8(a)
+}
+
+// RGBA -
+func (o *TColor) RGBA() (r, g, b, a int) {
+	return int(o.R), int(o.G), int(o.B), int(o.A)
+}
+
+// RGBA8 -
+func (o *TColor) RGBA8() (r, g, b, a uint8) {
+	return o.R, o.G, o.B, o.A
 }

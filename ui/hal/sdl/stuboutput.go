@@ -15,7 +15,7 @@ func errMsg() { log.Error(true, "Output is not initialized") }
 func (o *tStubOutput) Close() {}
 
 // AddChild -
-func (o *tStubOutput) AddChild(child IWidget) { errMsg() }
+func (o *tStubOutput) AddChild(children ...interface{}) { errMsg() }
 
 // Draw -
 func (o *tStubOutput) Draw() { errMsg() }
