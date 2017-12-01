@@ -21,6 +21,14 @@ func destroy(o interface{}) {
 	o = nil
 }
 
+// Abs -
+func Abs(i int) int {
+	if i < 0 {
+		return -i
+	}
+	return i
+}
+
 // TRect -
 type TRect struct {
 	Rect sdl.Rect

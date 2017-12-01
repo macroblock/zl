@@ -81,8 +81,7 @@ func (o *TOutput) AddChild(children ...interface{}) {
 	}
 }
 
-func (o *TOutput) drawChildren(children []interface{}, dx, dy, w, h int) {
-
+func (o *TOutput) drawChildren(children []interface{}, dx, dy, dw, dh int) {
 	for _, i := range children {
 		if child, ok := i.(IDraw); ok {
 			child.Draw()
@@ -93,17 +92,23 @@ func (o *TOutput) drawChildren(children []interface{}, dx, dy, w, h int) {
 			rect.Move(dx, dy)
 		}
 		oldRect := o.GetViewport()
-		o.SetViewport(rect)
+		log.Error(o.SetViewport(rect), "drawChildren: SetViewport")
 		rect = o.GetViewport()
+
 		if child, ok := i.(IChildren); ok {
-			if dx+rect.W() >= oldRect.W() || dy+rect.H() >= oldRect.H() {
-				log.Info("clip")
-				w -= dx
-				h -= dy
-			}
-			o.drawChildren(child.Children(), rect.X(), rect.Y(), w, h)
+			log.Error(o.SetClipRect(oldRect), "drawChildren: SetClipRect")
+			// o.SetClipRect(NewRect(0, 0, 30, 30))
+			o.drawChildren(child.Children(), rect.X(), rect.Y(), rect.W(), rect.H())
+			r := o.GetClipRect()
+			o.SetClipRect(nil)
+			o.SetDrawColor(255, 0, 0, 255)
+			o.DrawRect(o.GetViewport().Bounds())
+			o.SetDrawColor(0, 255, 0, 255)
+			o.DrawRect(r.Bounds())
+			o.SetClipRect(nil)
 		}
-		o.SetViewport(oldRect)
+		log.Error(o.SetViewport(oldRect), "drawChildren: SetViewport")
+		o.DrawRect(o.GetViewport().Bounds())
 	}
 }
 
@@ -185,15 +190,29 @@ func (o *TOutput) DrawRect(x1, y1, w, h int) {
 }
 
 // SetViewport -
-func (o *TOutput) SetViewport(rect *TRect) {
-	o.renderer.SetViewport(rect.Sdl())
+func (o *TOutput) SetViewport(rect *TRect) error {
+	if rect == nil {
+		return o.renderer.SetViewport(nil)
+	}
+	return o.renderer.SetViewport(rect.Sdl())
 }
 
 // GetViewport -
 func (o *TOutput) GetViewport() *TRect {
-	rect := NewEmptyRect()
-	o.renderer.GetViewport(rect.Sdl())
-	return rect
+	return &TRect{Rect: o.renderer.GetViewport()}
+}
+
+// SetClipRect -
+func (o *TOutput) SetClipRect(rect *TRect) error {
+	if rect == nil {
+		return o.renderer.SetClipRect(nil)
+	}
+	return o.renderer.SetClipRect(rect.Sdl())
+}
+
+// GetClipRect -
+func (o *TOutput) GetClipRect() *TRect {
+	return &TRect{Rect: o.renderer.GetClipRect()}
 }
 
 // Flush -
