@@ -10,6 +10,7 @@ var log = zlog.Instance("widget")
 
 // TWidget -
 type TWidget struct {
+	name     string
 	rect     hal.TRect
 	color    hal.TColor
 	children vector.TVector
@@ -26,6 +27,12 @@ func NewWidget() *TWidget {
 	ret := &TWidget{}
 	ret.rect.SetSize(50, 50)
 	return ret
+}
+
+// SetName -
+func (o *TWidget) SetName(s string) *TWidget {
+	o.name = s
+	return o
 }
 
 // SetPos -
@@ -64,14 +71,38 @@ func (o *TWidget) Bounds() *hal.TRect {
 	return &hal.TRect{Rect: *o.rect.Sdl()}
 }
 
+// ClientRect -
+func (o *TWidget) ClientRect() *hal.TRect {
+	r := hal.NewRect(0, 0, o.rect.W(), o.rect.H())
+	r.Rect.Y += 20
+	r.Rect.H -= 20
+	r.Shrink(5)
+	return r
+}
+
 // Draw -
 func (o *TWidget) Draw() {
 	scr := hal.Output()
 	log.Error(scr == nil, "Output is nil")
-	scr.SetFillColor(o.color.RGBA())
-	scr.FillRect(0, 0, o.rect.W(), o.rect.H())
+	scr.SetFillColor(50, 60, 70, 255)
+	r := hal.NewRect(0, 0, o.rect.W(), o.rect.H())
+	scr.FillRect(r.Bounds())
+
+	scr.SetDrawColor(0, 0, 0, 255)
+	scr.DrawText(o.name, 7, 4)
+	scr.SetDrawColor(192, 192, 192, 255)
+	scr.DrawText(o.name, 5, 2)
 	scr.SetDrawColor(100, 100, 100, 255)
-	scr.DrawRect(0, 0, o.rect.W(), o.rect.H())
+	scr.DrawRect(r.Bounds())
+
+	scr.SetFillColor(o.color.RGBA())
+	r.Rect.Y += 20
+	r.Rect.H -= 20
+	r.Shrink(4)
+	scr.FillRect(r.Bounds())
+
+	scr.SetDrawColor(100, 100, 100, 255)
+	scr.DrawRect(r.Bounds())
 
 }
 

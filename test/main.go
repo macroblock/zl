@@ -20,7 +20,7 @@ func main() {
 	tw := widget.NewTextWidget().
 		SetColor(50, 0, 0, 255).
 		SetText("test12345678456411").
-		SetPos(-15, -5).
+		SetPos(20, 10).
 		SetSize(150, 150)
 	out.AddChild(
 		// widget.NewWidget().
@@ -66,15 +66,17 @@ func main() {
 		// 			SetPos(50, 50).
 		// 			SetSize(70, 50)),
 		widget.NewWidget().
+			SetName("First").
 			SetColor(0, 0, 100, 255).
 			SetSize(100, 100).
 			SetPos(300, 50).
 			AddChild(widget.NewTextWidget().SetText("12345678").SetColor(0, 200, 100, 255).SetSize(100, 100).SetPos(270, 50).
 				AddChild(widget.NewTextWidget().SetText("12345678").SetColor(200, 0, 100, 255).SetSize(100, 100).SetPos(250, 50))),
 		widget.NewWidget().
-			SetColor(0, 0, 255, 255).
-			SetPos(20, 20).
-			SetSize(100, 100).
+			SetName("Second").
+			SetColor(0, 50, 0, 255).
+			SetPos(40, 40).
+			SetSize(200, 200).
 			AddChild(tw))
 
 	event := events.IEvent(nil)

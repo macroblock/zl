@@ -104,9 +104,8 @@ func (o *TRect) Move(dx, dy int) {
 }
 
 // Pos -
-func (o *TRect) Pos() []int {
-	ret := []int{int(o.Rect.X), int(o.Rect.Y)}
-	return ret
+func (o *TRect) Pos() (int, int) {
+	return int(o.Rect.X), int(o.Rect.Y)
 }
 
 // X -

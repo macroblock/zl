@@ -42,20 +42,27 @@ type TOutput struct {
 
 var _ IOutput = (*TOutput)(nil)
 
-// IDraw -
-type IDraw interface {
-	Draw()
-}
+type (
+	// IDraw -
+	IDraw interface {
+		Draw()
+	}
 
-// IChildren -
-type IChildren interface {
-	Children() []interface{}
-}
+	// IChildren -
+	IChildren interface {
+		Children() []interface{}
+	}
 
-// IBounds -
-type IBounds interface {
-	Bounds() *TRect
-}
+	// IBounds -
+	IBounds interface {
+		Bounds() *TRect
+	}
+
+	// IClientRect -
+	IClientRect interface {
+		ClientRect() *TRect
+	}
+)
 
 // Close -
 func (o *TOutput) Close() {
@@ -86,40 +93,6 @@ func (o *TOutput) AddChild(children ...interface{}) {
 	}
 }
 
-// func (o *TOutput) drawChildren(children []interface{}, dx, dy int, cp *TRect) {
-// 	childViewport := NewEmptyRect()
-// 	childBounds := NewEmptyRect()
-// 	clipRect := NewEmptyRect()
-// 	for _, i := range children {
-// 		*clipRect = *cp
-
-// 		o.SetClipRect(nil)
-// 		if child, ok := i.(IBounds); ok {
-// 			childViewport = child.Bounds()
-// 			childBounds = child.Bounds()
-// 			childViewport.Move(dx, dy)
-// 		}
-// 		log.Debug(childViewport)
-// 		if ok := clipRect.Intersect(childBounds); !ok {
-// 			// continue
-// 		}
-// 		log.Debug(childViewport, " cliprect ", clipRect)
-// 		clipRect.Move(-childBounds.X(), -childBounds.Y())
-
-// 		o.drawViewport(childViewport, clipRect)
-// 		o.SetZeroPoint(childViewport.X(), childViewport.Y())
-// 		log.Debug(childViewport.X(), " ", childViewport.Y())
-// 		o.SetClipRect(clipRect)
-// 		if child, ok := i.(IDraw); ok {
-// 			child.Draw()
-// 		}
-// 		if child, ok := i.(IChildren); ok {
-// 			o.drawChildren(child.Children(), childBounds.X(), childBounds.Y(), clipRect)
-// 		}
-// o.SetClipRect(nil)
-// 	}
-// }
-
 func (o *TOutput) drawBounds(vp, cr *TRect) {
 	o.SetClipRect(nil)
 
@@ -142,18 +115,28 @@ func (o *TOutput) drawChildren(children []interface{}, clipRect *TRect) {
 		if child, ok := i.(IBounds); ok {
 			bounds = child.Bounds()
 		}
+		bx, by := bounds.Pos()
 		cr := clipRect.Copy()
 		if ok := cr.Intersect(bounds); !ok {
 			// continue
 		}
-		o.drawBounds(bounds, cr) //debug
+		//o.drawBounds(bounds, cr) //debug
 		o.SetClipRect(cr)
-		o.MoveZeroPoint(bounds.X(), bounds.Y())
+		o.MoveZeroPoint(bx, by)
 		if child, ok := i.(IDraw); ok {
 			child.Draw()
 		}
+		cr.Move(-bx, -by)
+		if child, ok := i.(IClientRect); ok {
+			cb := child.ClientRect()
+			cbx, cby := cb.Pos()
+			cr.Intersect(cb)
+			o.SetClipRect(cr)
+			o.MoveZeroPoint(cbx, cby)
+			cr.Move(-cbx, -cby)
+
+		}
 		if child, ok := i.(IChildren); ok {
-			cr.Move(-bounds.X(), -bounds.Y())
 			o.drawChildren(child.Children(), cr)
 		}
 		o.SetZeroPoint(oldX, oldY)
@@ -207,6 +190,9 @@ func (o *TOutput) setFillColor() {
 
 // DrawText -
 func (o *TOutput) DrawText(s string, x, y int) {
+	if s == "" {
+		return
+	}
 	var surfaceText *sdl.Surface
 	var textureText *sdl.Texture
 	x += o.zeroX
