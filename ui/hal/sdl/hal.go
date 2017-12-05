@@ -104,7 +104,6 @@ func (o *THal) Event() events.IEvent {
 
 // Draw -
 func (o *THal) Draw() {
-
 	for id, output := range o.outputs {
 		log.Warning(output == nil, "output id: ", id, " is nil")
 		if output == nil {

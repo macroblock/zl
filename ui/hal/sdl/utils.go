@@ -1,6 +1,10 @@
 package hal
 
-import "github.com/veandco/go-sdl2/sdl"
+import (
+	"math"
+
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 type idestroyer interface {
 	Destroy()
@@ -29,6 +33,16 @@ func Abs(i int) int {
 	return i
 }
 
+// Min -
+func Min(i1, i2 int) int {
+	return int(math.Min(float64(i1), float64(i2)))
+}
+
+// Max -
+func Max(i1, i2 int) int {
+	return int(math.Max(float64(i1), float64(i2)))
+}
+
 // TRect -
 type TRect struct {
 	Rect sdl.Rect
@@ -42,6 +56,14 @@ func NewEmptyRect() *TRect {
 // NewRect -
 func NewRect(x, y, w, h int) *TRect {
 	return &TRect{sdl.Rect{X: int32(x), Y: int32(y), W: int32(w), H: int32(h)}}
+}
+
+// Intersect -
+func (o *TRect) Intersect(rect *TRect) bool {
+	r, ok := o.Rect.Intersect(rect.Sdl())
+	o.Rect = r
+	return ok
+
 }
 
 // Sdl -
@@ -108,6 +130,22 @@ func (o *TRect) Size() (w, h int) { return int(o.Rect.W), int(o.Rect.H) }
 // Bounds -
 func (o *TRect) Bounds() (x, y, w, h int) {
 	return int(o.Rect.X), int(o.Rect.Y), int(o.Rect.W), int(o.Rect.H)
+}
+
+// Grow -
+func (o *TRect) Grow(n int) {
+	o.Rect.X -= int32(n)
+	o.Rect.Y -= int32(n)
+	o.Rect.W += int32(n * 2)
+	o.Rect.H += int32(n * 2)
+}
+
+// Shrink -
+func (o *TRect) Shrink(n int) {
+	o.Rect.X += int32(n)
+	o.Rect.Y += int32(n)
+	o.Rect.W -= int32(n * 2)
+	o.Rect.H -= int32(n * 2)
 }
 
 // SetPos32 -

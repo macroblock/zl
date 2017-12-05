@@ -21,18 +21,23 @@ type IOutput interface {
 	DrawLine(x1, y1, x2, y2 int)
 	DrawRect(x1, y1, w, h int)
 	Flush()
+	SetViewport(rect *TRect) error
+	GetViewport() *TRect
+	SetClipRect(rect *TRect) error
+	// GetClipRect() *TRect
 }
 
 // TOutput -
 type TOutput struct {
-	hal        *THal
-	x, y, w, h int
-	window     *sdl.Window
-	renderer   *sdl.Renderer
-	fillColor  TColor
-	drawColor  TColor
-	children   vector.TVector
-	font       *ttf.Font
+	hal          *THal
+	zeroX, zeroY int
+	x, y         int
+	window       *sdl.Window
+	renderer     *sdl.Renderer
+	fillColor    TColor
+	drawColor    TColor
+	children     vector.TVector
+	font         *ttf.Font
 }
 
 var _ IOutput = (*TOutput)(nil)
@@ -81,40 +86,106 @@ func (o *TOutput) AddChild(children ...interface{}) {
 	}
 }
 
-func (o *TOutput) drawChildren(children []interface{}, dx, dy, dw, dh int) {
+// func (o *TOutput) drawChildren(children []interface{}, dx, dy int, cp *TRect) {
+// 	childViewport := NewEmptyRect()
+// 	childBounds := NewEmptyRect()
+// 	clipRect := NewEmptyRect()
+// 	for _, i := range children {
+// 		*clipRect = *cp
+
+// 		o.SetClipRect(nil)
+// 		if child, ok := i.(IBounds); ok {
+// 			childViewport = child.Bounds()
+// 			childBounds = child.Bounds()
+// 			childViewport.Move(dx, dy)
+// 		}
+// 		log.Debug(childViewport)
+// 		if ok := clipRect.Intersect(childBounds); !ok {
+// 			// continue
+// 		}
+// 		log.Debug(childViewport, " cliprect ", clipRect)
+// 		clipRect.Move(-childBounds.X(), -childBounds.Y())
+
+// 		o.drawViewport(childViewport, clipRect)
+// 		o.SetZeroPoint(childViewport.X(), childViewport.Y())
+// 		log.Debug(childViewport.X(), " ", childViewport.Y())
+// 		o.SetClipRect(clipRect)
+// 		if child, ok := i.(IDraw); ok {
+// 			child.Draw()
+// 		}
+// 		if child, ok := i.(IChildren); ok {
+// 			o.drawChildren(child.Children(), childBounds.X(), childBounds.Y(), clipRect)
+// 		}
+// o.SetClipRect(nil)
+// 	}
+// }
+func (o *TOutput) drawChildren(children []interface{}, dx, dy int, cp *TRect) {
+	childBounds := NewEmptyRect()
+	clipRect := NewEmptyRect()
 	for _, i := range children {
+		oldX, oldY := o.GetZeroPoint()
+		*clipRect = *cp
+		if child, ok := i.(IBounds); ok {
+			childBounds = child.Bounds()
+		}
+		if ok := clipRect.Intersect(childBounds); !ok {
+			// continue
+		}
+		o.drawViewport(childBounds, clipRect) //debug
+		o.SetClipRect(clipRect)
+		o.SetZeroPointRel(childBounds.X(), childBounds.Y())
 		if child, ok := i.(IDraw); ok {
 			child.Draw()
 		}
-		rect := NewEmptyRect()
-		if child, ok := i.(IBounds); ok {
-			rect = child.Bounds()
-			rect.Move(dx, dy)
-		}
-		oldRect := o.GetViewport()
-		log.Error(o.SetViewport(rect), "drawChildren: SetViewport")
-		rect = o.GetViewport()
-
 		if child, ok := i.(IChildren); ok {
-			log.Error(o.SetClipRect(oldRect), "drawChildren: SetClipRect")
-			// o.SetClipRect(NewRect(0, 0, 30, 30))
-			o.drawChildren(child.Children(), rect.X(), rect.Y(), rect.W(), rect.H())
-			r := o.GetClipRect()
-			o.SetClipRect(nil)
-			o.SetDrawColor(255, 0, 0, 255)
-			o.DrawRect(o.GetViewport().Bounds())
-			o.SetDrawColor(0, 255, 0, 255)
-			o.DrawRect(r.Bounds())
-			o.SetClipRect(nil)
+			clipRect.Move(-childBounds.X(), -childBounds.Y())
+			o.drawChildren(child.Children(), childBounds.X(), childBounds.Y(), clipRect)
 		}
-		log.Error(o.SetViewport(oldRect), "drawChildren: SetViewport")
-		o.DrawRect(o.GetViewport().Bounds())
+		o.SetZeroPoint(oldX, oldY)
 	}
+}
+func (o *TOutput) drawViewport(vp, cr *TRect) {
+	r := NewEmptyRect()
+	// o.SetViewport(nil)
+	// o.SetZeroPoint(0, 0)
+	o.SetClipRect(nil)
+
+	o.SetDrawColor(255, 0, 0, 255)
+	*r = *vp
+	r.Grow(2)
+
+	o.DrawRect(r.Bounds())
+	*r = *cr
+	r.Grow(1)
+	o.SetDrawColor(0, 255, 0, 255)
+	o.DrawRect(r.Bounds())
+	// o.SetViewport(oldVP)
 }
 
 // Draw -
 func (o *TOutput) Draw() {
-	o.drawChildren(o.children.Data(), 0, 0, o.w, o.h)
+	o.SetDrawColor(0, 0, 0, 0)
+	o.SetFillColor(0, 0, 0, 0)
+	o.Clear()
+	o.SetZeroPoint(0, 0)
+	o.drawChildren(o.children.Data(), 0, 0, o.GetViewport())
+}
+
+// SetZeroPoint -
+func (o *TOutput) SetZeroPoint(x, y int) {
+	o.zeroX = x
+	o.zeroY = y
+}
+
+// SetZeroPointRel -
+func (o *TOutput) SetZeroPointRel(x, y int) {
+	o.zeroX += x
+	o.zeroY += y
+}
+
+// GetZeroPoint -
+func (o *TOutput) GetZeroPoint() (x, y int) {
+	return o.zeroX, o.zeroY
 }
 
 // SetDrawColor -
@@ -139,9 +210,11 @@ func (o *TOutput) setFillColor() {
 func (o *TOutput) DrawText(s string, x, y int) {
 	var surfaceText *sdl.Surface
 	var textureText *sdl.Texture
+	x += o.zeroX
+	y += o.zeroY
 	err := error(nil)
 	surfaceText, err = o.Font().RenderUTF8Blended(s, o.drawColor.Sdl())
-	log.Error(err != nil, "DrawText")
+	log.Error(err, "DrawText")
 	defer surfaceText.Free()
 	textureText, err = o.renderer.CreateTextureFromSurface(surfaceText)
 	rect := NewEmptyRect().
@@ -168,6 +241,8 @@ func (o *TOutput) Clear() {
 
 // FillRect -
 func (o *TOutput) FillRect(x1, y1, w, h int) {
+	x1 += o.zeroX
+	y1 += o.zeroY
 	o.setFillColor()
 	// o.renderer.FillRect(&sdl.Rect{X: int32(x1), Y: int32(y1), W: int32(w), H: int32(h)})
 	rect := NewRect(x1, y1, w, h)
@@ -176,12 +251,18 @@ func (o *TOutput) FillRect(x1, y1, w, h int) {
 
 // DrawLine -
 func (o *TOutput) DrawLine(x1, y1, x2, y2 int) {
+	x1 += o.zeroX
+	y1 += o.zeroY
+	x2 += o.zeroX
+	y2 += o.zeroY
 	o.setDrawColor()
 	o.renderer.DrawLine(int32(x1), int32(y1), int32(x2), int32(y2))
 }
 
 // DrawRect -
 func (o *TOutput) DrawRect(x1, y1, w, h int) {
+	x1 += o.zeroX
+	y1 += o.zeroY
 	o.setDrawColor()
 	// o.renderer.DrawRect(&sdl.Rect{X: int32(x1), Y: int32(y1), W: int32(w), H: int32(h)})
 	rect := NewRect(x1, y1, w, h)
@@ -207,12 +288,21 @@ func (o *TOutput) SetClipRect(rect *TRect) error {
 	if rect == nil {
 		return o.renderer.SetClipRect(nil)
 	}
-	return o.renderer.SetClipRect(rect.Sdl())
+	r := *rect
+	r.Move(o.zeroX, o.zeroY)
+	return o.renderer.SetClipRect(r.Sdl())
 }
 
-// GetClipRect -
-func (o *TOutput) GetClipRect() *TRect {
-	return &TRect{Rect: o.renderer.GetClipRect()}
+// // GetClipRect -
+// func (o *TOutput) GetClipRect() *TRect {
+// 	return &TRect{Rect: o.renderer.GetClipRect()}
+// }
+
+// Size -
+func (o *TOutput) Size() (int, int) {
+	w, h, err := o.renderer.GetOutputSize()
+	log.Error(err, "Size(): GetOutputSize")
+	return int(w), int(h)
 }
 
 // Flush -
