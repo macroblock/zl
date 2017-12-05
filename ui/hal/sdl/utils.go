@@ -63,12 +63,17 @@ func (o *TRect) Intersect(rect *TRect) bool {
 	r, ok := o.Rect.Intersect(rect.Sdl())
 	o.Rect = r
 	return ok
-
 }
 
 // Sdl -
 func (o *TRect) Sdl() *sdl.Rect {
 	return &o.Rect
+}
+
+// Copy -
+func (o *TRect) Copy() *TRect {
+	r := *o
+	return &r
 }
 
 // SetPos -

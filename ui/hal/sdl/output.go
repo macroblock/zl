@@ -119,56 +119,55 @@ func (o *TOutput) AddChild(children ...interface{}) {
 // o.SetClipRect(nil)
 // 	}
 // }
-func (o *TOutput) drawChildren(children []interface{}, dx, dy int, cp *TRect) {
-	childBounds := NewEmptyRect()
-	clipRect := NewEmptyRect()
+
+func (o *TOutput) drawBounds(vp, cr *TRect) {
+	o.SetClipRect(nil)
+
+	o.SetDrawColor(255, 0, 0, 255)
+	r := vp.Copy()
+	r.Grow(2)
+	o.DrawRect(r.Bounds())
+
+	r = cr.Copy()
+	r.Grow(1)
+	o.SetDrawColor(0, 255, 0, 255)
+	o.DrawRect(r.Bounds())
+}
+
+func (o *TOutput) drawChildren(children []interface{}, clipRect *TRect) {
+	scrW, scrH := o.Size()
+	oldX, oldY := o.GetZeroPoint()
 	for _, i := range children {
-		oldX, oldY := o.GetZeroPoint()
-		*clipRect = *cp
+		bounds := NewRect(-oldX, -oldY, scrW, scrH)
 		if child, ok := i.(IBounds); ok {
-			childBounds = child.Bounds()
+			bounds = child.Bounds()
 		}
-		if ok := clipRect.Intersect(childBounds); !ok {
+		cr := clipRect.Copy()
+		if ok := cr.Intersect(bounds); !ok {
 			// continue
 		}
-		o.drawViewport(childBounds, clipRect) //debug
-		o.SetClipRect(clipRect)
-		o.SetZeroPointRel(childBounds.X(), childBounds.Y())
+		o.drawBounds(bounds, cr) //debug
+		o.SetClipRect(cr)
+		o.MoveZeroPoint(bounds.X(), bounds.Y())
 		if child, ok := i.(IDraw); ok {
 			child.Draw()
 		}
 		if child, ok := i.(IChildren); ok {
-			clipRect.Move(-childBounds.X(), -childBounds.Y())
-			o.drawChildren(child.Children(), childBounds.X(), childBounds.Y(), clipRect)
+			cr.Move(-bounds.X(), -bounds.Y())
+			o.drawChildren(child.Children(), cr)
 		}
 		o.SetZeroPoint(oldX, oldY)
 	}
 }
-func (o *TOutput) drawViewport(vp, cr *TRect) {
-	r := NewEmptyRect()
-	// o.SetViewport(nil)
-	// o.SetZeroPoint(0, 0)
-	o.SetClipRect(nil)
-
-	o.SetDrawColor(255, 0, 0, 255)
-	*r = *vp
-	r.Grow(2)
-
-	o.DrawRect(r.Bounds())
-	*r = *cr
-	r.Grow(1)
-	o.SetDrawColor(0, 255, 0, 255)
-	o.DrawRect(r.Bounds())
-	// o.SetViewport(oldVP)
-}
 
 // Draw -
 func (o *TOutput) Draw() {
-	o.SetDrawColor(0, 0, 0, 0)
 	o.SetFillColor(0, 0, 0, 0)
 	o.Clear()
 	o.SetZeroPoint(0, 0)
-	o.drawChildren(o.children.Data(), 0, 0, o.GetViewport())
+	w, h := o.Size()
+	o.drawChildren(o.children.Data(), NewRect(0, 0, w, h))
+	o.SetZeroPoint(0, 0)
 }
 
 // SetZeroPoint -
@@ -177,8 +176,8 @@ func (o *TOutput) SetZeroPoint(x, y int) {
 	o.zeroY = y
 }
 
-// SetZeroPointRel -
-func (o *TOutput) SetZeroPointRel(x, y int) {
+// MoveZeroPoint -
+func (o *TOutput) MoveZeroPoint(x, y int) {
 	o.zeroX += x
 	o.zeroY += y
 }
