@@ -102,33 +102,27 @@ func main() {
 		switch ev := event.(type) {
 		case *events.TKeyboardEvent:
 			//log.Info(ev.Rune())
-			if ev.Rune() == 'q' {
+			switch ev.Rune() {
+			case 'q':
 				quit = true
-			}
-			if ev.Rune() == 'a' {
+			case 'a':
 				tw.AddPos(-5, 0)
-			}
-			if ev.Rune() == 'w' {
+			case 'w':
 				tw.AddPos(0, -5)
-			}
-			if ev.Rune() == 'd' {
+			case 'd':
 				tw.AddPos(5, 0)
-			}
-			if ev.Rune() == 's' {
+			case 's':
 				tw.AddPos(0, 5)
-			}
-			if ev.Rune() == 'h' {
+			case 'h':
 				iw.AddPos(-5, 0)
-			}
-			if ev.Rune() == 'k' {
+			case 'k':
 				iw.AddPos(0, -5)
-			}
-			if ev.Rune() == 'l' {
+			case 'l':
 				iw.AddPos(5, 0)
-			}
-			if ev.Rune() == 'j' {
+			case 'j':
 				iw.AddPos(0, 5)
 			}
+
 		case *events.TDropFileEvent:
 			log.Info(ev.Content())
 		}
