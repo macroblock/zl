@@ -134,7 +134,7 @@ func (o *TScreen) drawChildren(children []interface{}, clipRect *TRect) {
 		if ok := cr.Intersect(bounds); !ok {
 			cr.SetSize(0, 0)
 		}
-		o.drawBounds(bounds, cr) //debug
+		// o.drawBounds(bounds, cr) //debug
 		SetClipRect(o, cr)
 		o.MoveZeroPoint(bx, by)
 		if child, ok := i.(IDraw); ok {
@@ -147,8 +147,8 @@ func (o *TScreen) drawChildren(children []interface{}, clipRect *TRect) {
 			if ok := cr.Intersect(cb); !ok {
 				cr.SetSize(0, 0)
 			}
-			o.MoveZeroPoint(cbx, cby)
 			cr.Move(-cbx, -cby)
+			o.MoveZeroPoint(cbx, cby)
 		}
 		if child, ok := i.(IChildren); ok {
 			o.drawChildren(child.Children(), cr)
