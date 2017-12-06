@@ -22,6 +22,16 @@ type (
 	}
 )
 
+// TKeyboardAction -
+type (
+	TKeyboardAction struct {
+		TAction
+		handler TKeyboardHandler
+	}
+	// TKeyboardHandler -
+	TKeyboardHandler func(ev TKeyboardEvent) bool
+)
+
 // NewAction -
 func NewAction(name, eventKey, descr string, handler TEventHandler) IAction {
 	act := &TAction{}
@@ -29,6 +39,7 @@ func NewAction(name, eventKey, descr string, handler TEventHandler) IAction {
 	act.eventKey = eventKey
 	act.description = descr
 	act.handler = handler
+	ActionMap.Add(act)
 	return act
 }
 
@@ -53,4 +64,25 @@ func (o *TAction) Do(ev IEvent) bool {
 		return false
 	}
 	return o.handler(ev)
+}
+
+// NewKeyboardAction -
+func NewKeyboardAction(name, eventKey, descr string, handler TKeyboardHandler) IAction {
+	act := &TKeyboardAction{}
+	act.name = name
+	act.eventKey = eventKey
+	act.description = descr
+	act.handler = handler
+	ActionMap.Add(act)
+	return act
+}
+
+// Do -
+func (o *TKeyboardAction) Do(ev IEvent) bool {
+	if o.handler == nil {
+		return false
+	}
+	keybEvent, ok := ev.(*TKeyboardEvent)
+	log.Warning(ok, "incompatible event <,", ev, "> in <,", o, "> method")
+	return o.handler(*keybEvent)
 }

@@ -2,12 +2,12 @@ package hal
 
 import "github.com/veandco/go-sdl2/ttf"
 
-var stubOutput IOutput = &tStubOutput{}
+var stubScreen IScreen = &tStubOutput{}
 
 type tStubOutput struct {
 }
 
-var _ IOutput = (*tStubOutput)(nil)
+var _ IScreen = (*tStubOutput)(nil)
 
 func errMsg() { log.Error(true, "Output is not initialized") }
 
@@ -47,17 +47,8 @@ func (o *tStubOutput) DrawLine(x1, y1, x2, y2 int) { errMsg() }
 // DrawRect -
 func (o *tStubOutput) DrawRect(x1, y1, w, h int) { errMsg() }
 
-// SetViewport -
-func (o *tStubOutput) SetViewport(rect *TRect) error { errMsg(); return nil }
-
-// GetViewport -
-func (o *tStubOutput) GetViewport() *TRect { errMsg(); return nil }
-
-// SetClipRect -
-func (o *tStubOutput) SetClipRect(rect *TRect) error { errMsg(); return nil }
-
-// GetClipRect -
-func (o *tStubOutput) GetClipRect() *TRect { errMsg(); return nil }
+// PostUpdate -
+func (o *tStubOutput) PostUpdate() { errMsg() }
 
 // Flush -
 func (o *tStubOutput) Flush() { errMsg() }

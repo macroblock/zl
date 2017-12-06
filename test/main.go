@@ -12,14 +12,24 @@ import (
 
 var log = zlog.Instance("main")
 
+func randString(n int) string {
+	str := ""
+	for i := 0; i < n; i++ {
+		str += "1"
+	}
+	return str
+}
+
 func main() {
+
+	a := 1820
 	log.Add(zlogger.Build().Styler(zlogger.AnsiStyler).Done())
 	x, err := hal.New()
 	log.Error(err, "New hal")
-	out, err := x.NewOutput()
+	out, err := x.NewScreen()
 	tw := widget.NewTextWidget().
 		SetColor(50, 0, 0, 255).
-		SetText("test12345678456411").
+		SetText(randString(a)).
 		SetPos(20, 10).
 		SetSize(100, 100)
 	iw := widget.NewWidget().
@@ -72,12 +82,22 @@ func main() {
 		// 			SetPos(50, 50).
 		// 			SetSize(70, 50)),
 		widget.NewWidget().
-			SetName("First").
+			SetName("12fasdfasfd").
 			SetColor(0, 0, 100, 255).
 			SetSize(100, 100).
-			SetPos(300, 50).
-			AddChild(widget.NewTextWidget().SetText("12345678").SetColor(0, 200, 100, 255).SetSize(100, 100).SetPos(270, 50).
-				AddChild(widget.NewTextWidget().SetText("12345678").SetColor(200, 0, 100, 255).SetSize(100, 100).SetPos(250, 50))),
+			SetPos(300, 200),
+		// AddChild(
+		// widget.NewTextWidget().
+		// 	SetText("12345678").
+		// 	SetColor(0, 200, 100, 255).
+		// 	SetSize(100, 100).
+		// 	SetPos(-80, 10).
+		// 	AddChild(
+		// 		widget.NewTextWidget().
+		// 			SetText("12345678").
+		// 			SetColor(200, 0, 100, 255).
+		// 			SetSize(100, 100).
+		// 			SetPos(-80, 0))),
 		widget.NewWidget().
 			SetName("Second").
 			SetColor(0, 50, 0, 255).
@@ -86,9 +106,14 @@ func main() {
 			AddChild(iw))
 
 	event := events.IEvent(nil)
+	events.InitActionMap()
+
+	events.NewKeyboardAction("refresh", "i", "", func(ev events.TKeyboardEvent) bool {
+		log.Debug("refresh")
+		x.Draw()
+		return true
+	})
 	quit := false
-	hal.Output().SetViewport(nil)
-	log.Debug("viewport ", hal.Output().GetViewport())
 	for !quit {
 		x.Draw()
 		// hal.Output().Flush()
@@ -99,36 +124,47 @@ func main() {
 			}
 			time.Sleep(1)
 		}
+		log.Debug(event)
 		switch ev := event.(type) {
 		case *events.TKeyboardEvent:
 			//log.Info(ev.Rune())
+			scr := ev.Screen()
+			if scr == nil {
+				break
+			}
 			switch ev.Rune() {
 			case 'q':
 				quit = true
 			case 'a':
 				tw.AddPos(-5, 0)
+				scr.PostUpdate()
 			case 'w':
 				tw.AddPos(0, -5)
+				scr.PostUpdate()
 			case 'd':
 				tw.AddPos(5, 0)
+				scr.PostUpdate()
 			case 's':
 				tw.AddPos(0, 5)
+				scr.PostUpdate()
 			case 'h':
 				iw.AddPos(-5, 0)
+				scr.PostUpdate()
 			case 'k':
 				iw.AddPos(0, -5)
+				scr.PostUpdate()
 			case 'l':
 				iw.AddPos(5, 0)
+				scr.PostUpdate()
 			case 'j':
 				iw.AddPos(0, 5)
+				scr.PostUpdate()
 			}
-
+		case *events.TWindowCloseEvent:
+			quit = true
 		case *events.TDropFileEvent:
 			log.Info(ev.Content())
 		}
-
 	}
-
 	x.Close()
-
 }

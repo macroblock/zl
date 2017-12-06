@@ -4,7 +4,28 @@ import (
 	"fmt"
 	"time"
 	"unicode"
+
+	"github.com/veandco/go-sdl2/ttf"
 )
+
+// IScreen -
+type IScreen interface {
+	Close()
+	AddChild(children ...interface{})
+	Draw()
+	SetDrawColor(r, g, b, a int)
+	SetFillColor(r, g, b, a int)
+	DrawText(s string, x, y int)
+	Font() *ttf.Font
+	SetFont(font *ttf.Font)
+	Clear()
+	FillRect(x1, y1, w, h int)
+	DrawLine(x1, y1, x2, y2 int)
+	DrawRect(x1, y1, w, h int)
+	Flush()
+	PostUpdate()
+	// GetClipRect() *TRect
+}
 
 type (
 	// IEvent -
@@ -12,20 +33,23 @@ type (
 		Time() time.Time
 		Type() string
 		EventKey() string
+		Screen() IScreen
 		String() string
 	}
 
 	// TEvent -
 	TEvent struct {
 		IEvent
-		time time.Time
+		time   time.Time
+		screen IScreen
 	}
 )
 
 // NewEvent -
-func NewEvent() *TEvent {
+func NewEvent(scr IScreen) *TEvent {
 	ret := &TEvent{time: time.Now()}
 	ret.IEvent = ret
+	ret.screen = scr
 	return ret
 }
 
@@ -44,22 +68,43 @@ func (o *TEvent) EventKey() string {
 	return ""
 }
 
+// Screen -
+func (o *TEvent) Screen() IScreen {
+	return o.screen
+}
+
 // String -
 func (o *TEvent) String() string {
 	return o.time.Format("15:04:05.000") + " " + o.IEvent.Type()
 }
 
+// // TActionKeyboardMap -
+// type TActionKeyboardMap struct {
+// 	name map[string]IAction
+// 	mode string
+// }
+// var ActionKMap TActionKeyboardMap
+
+// func (o *TActionKeyboardMap) initActionKeyboardMap(){
+// 	ActionKMap=TActionKeyboardMap{}
+// 	ActionKMap.name=map[string]IAction
+// }
+
+// func (o *TActionKeyboardMap) Add(event IAction){
+// 	o.name[event.]
+// }
+
 // TKeyboardEvent -
 type TKeyboardEvent struct {
-	TEvent
+	TWindowEvent
 	ch   rune
 	scan int
 	mod  int
 }
 
 // NewKeyboardEvent -
-func NewKeyboardEvent(ch rune, mod int) *TKeyboardEvent {
-	ret := &TKeyboardEvent{TEvent: *NewEvent(), ch: ch, mod: mod}
+func NewKeyboardEvent(scr IScreen, id int, ch rune, mod int) *TKeyboardEvent {
+	ret := &TKeyboardEvent{TWindowEvent: *NewWindowEvent(scr, id), ch: ch, mod: mod}
 	ret.IEvent = ret
 	return ret
 }
@@ -86,22 +131,22 @@ func (o *TKeyboardEvent) EventKey() string {
 
 // String -
 func (o *TKeyboardEvent) String() string {
-	format := "%v: U+%x %v"
+	format := "%v U+%x %v"
 	if unicode.IsPrint(o.ch) {
-		format = "%v: %q %v"
+		format = "%v %q %v"
 	}
-	return fmt.Sprintf(format, o.TEvent.String(), o.ch, o.mod)
+	return fmt.Sprintf(format, o.TWindowEvent.String(), o.ch, o.mod)
 }
 
 // TDropFileEvent -
 type TDropFileEvent struct {
-	TEvent
+	TWindowEvent
 	content string
 }
 
 // NewDropFileEvent -
-func NewDropFileEvent(s string) *TDropFileEvent {
-	ret := &TDropFileEvent{TEvent: *NewEvent(), content: s}
+func NewDropFileEvent(scr IScreen, id int, s string) *TDropFileEvent {
+	ret := &TDropFileEvent{TWindowEvent: *NewWindowEvent(scr, id), content: s}
 	ret.IEvent = ret
 	return ret
 }
@@ -118,5 +163,99 @@ func (o *TDropFileEvent) Content() string {
 
 // String -
 func (o *TDropFileEvent) String() string {
-	return fmt.Sprintf("%v %v", o.TEvent.String(), o.content)
+	return fmt.Sprintf("%v %v", o.TWindowEvent.String(), o.content)
+}
+
+// TWindowEvent -
+type TWindowEvent struct {
+	TEvent
+	windowID int
+}
+
+// NewWindowEvent -
+func NewWindowEvent(scr IScreen, id int) *TWindowEvent {
+	ret := &TWindowEvent{TEvent: *NewEvent(scr), windowID: id}
+	ret.IEvent = ret
+	return ret
+}
+
+// WindowID -
+func (o *TWindowEvent) WindowID() int {
+	return o.windowID
+}
+
+// Type -
+func (o *TWindowEvent) Type() string {
+	return "window unknown"
+}
+
+// String -
+func (o *TWindowEvent) String() string {
+	return fmt.Sprintf("%v WinID:%v", o.TEvent.String(), o.windowID)
+}
+
+// EventKey -
+func (o *TWindowEvent) EventKey() string {
+	return fmt.Sprintf("window unknown %v", o.windowID)
+}
+
+// TWindowCloseEvent -
+type TWindowCloseEvent struct {
+	TWindowEvent
+}
+
+// NewWindowCloseEvent -
+func NewWindowCloseEvent(scr IScreen, id int) *TWindowCloseEvent {
+	ret := &TWindowCloseEvent{TWindowEvent: *NewWindowEvent(scr, id)}
+	ret.IEvent = ret
+	return ret
+}
+
+// Type -
+func (o *TWindowCloseEvent) Type() string {
+	return "window close"
+}
+
+// String -
+func (o *TWindowCloseEvent) String() string {
+	return fmt.Sprintf("%v", o.TWindowEvent.String())
+}
+
+// EventKey -
+func (o *TWindowCloseEvent) EventKey() string {
+	return fmt.Sprintf("window close %v", o.windowID)
+}
+
+// TWindowResizedEvent -
+type TWindowResizedEvent struct {
+	TWindowEvent
+	windowID int
+	w, h     int
+}
+
+// NewWindowResizedEvent -
+func NewWindowResizedEvent(scr IScreen, id, w, h int) *TWindowResizedEvent {
+	ret := &TWindowResizedEvent{TWindowEvent: *NewWindowEvent(scr, id), w: w, h: h}
+	ret.IEvent = ret
+	return ret
+}
+
+// Size -
+func (o *TWindowResizedEvent) Size() (int, int) {
+	return o.w, o.h
+}
+
+// Type -
+func (o *TWindowResizedEvent) Type() string {
+	return "window resized"
+}
+
+// String -
+func (o *TWindowResizedEvent) String() string {
+	return fmt.Sprintf("%v %vx%v", o.TWindowEvent.String(), o.w, o.h)
+}
+
+// EventKey -
+func (o *TWindowResizedEvent) EventKey() string {
+	return fmt.Sprintf("window resized %v", o.windowID)
 }

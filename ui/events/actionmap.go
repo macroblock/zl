@@ -9,7 +9,8 @@ type tActionMap struct {
 // ActionMap -
 var ActionMap tActionMap
 
-func initActionMap() {
+// InitActionMap -
+func InitActionMap() {
 	ActionMap = tActionMap{}
 	ActionMap.byName = map[string]IAction{}
 	ActionMap.Apply()
@@ -36,6 +37,14 @@ func (am *tActionMap) Apply() {
 		_, ok := am.byEventKey[act.EventKey()]
 		log.Warning(!ok, "Apply(): action is already set (overwriten)")
 		am.byEventKey[act.EventKey()] = act
+	}
+}
+
+// SetMode -
+func (am *tActionMap) SetMode(mode string) {
+	am.mode = mode
+	if len(am.mode) > 0 {
+		am.mode += "/"
 	}
 }
 

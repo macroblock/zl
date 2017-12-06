@@ -6,8 +6,8 @@ import (
 	"github.com/veandco/go-sdl2/ttf"
 )
 
-// IOutput -
-type IOutput interface {
+// IScreen -
+type IScreen interface {
 	Close()
 	AddChild(children ...interface{})
 	Draw()
@@ -21,14 +21,12 @@ type IOutput interface {
 	DrawLine(x1, y1, x2, y2 int)
 	DrawRect(x1, y1, w, h int)
 	Flush()
-	SetViewport(rect *TRect) error
-	GetViewport() *TRect
-	SetClipRect(rect *TRect) error
+	PostUpdate()
 	// GetClipRect() *TRect
 }
 
-// TOutput -
-type TOutput struct {
+// TScreen -
+type TScreen struct {
 	hal          *THal
 	zeroX, zeroY int
 	x, y         int
@@ -38,9 +36,10 @@ type TOutput struct {
 	drawColor    TColor
 	children     vector.TVector
 	font         *ttf.Font
+	needUpdate   bool
 }
 
-var _ IOutput = (*TOutput)(nil)
+var _ IScreen = (*TScreen)(nil)
 
 type (
 	// IDraw -
@@ -65,16 +64,16 @@ type (
 )
 
 // Close -
-func (o *TOutput) Close() {
+func (o *TScreen) Close() {
 	//_, err := hal.outputs.Remove(hal.outputs.IndexOf(o))
 	//log.Warning(err, "TOutput.Close(): output not found")
 	id, err := o.window.GetID()
 	log.Debug("close window id:", id)
 	log.Error(err, "TOutput.Close(): Window.GetID")
-	if o == Output() {
-		makeCurrent(stubOutput)
+	if o == Screen() {
+		makeCurrent(stubScreen)
 	}
-	delete(o.hal.outputs, id)
+	delete(o.hal.screen, id)
 
 	if o.renderer != nil {
 		o.renderer.Destroy()
@@ -86,15 +85,30 @@ func (o *TOutput) Close() {
 	}
 }
 
+// PostUpdate -
+func (o *TScreen) PostUpdate() {
+	o.needUpdate = true
+}
+
+// ResetUpdate -
+func (o *TScreen) ResetUpdate() {
+	o.needUpdate = false
+}
+
+// NeedUpdate -
+func (o *TScreen) NeedUpdate() bool {
+	return o.needUpdate
+}
+
 // AddChild -
-func (o *TOutput) AddChild(children ...interface{}) {
+func (o *TScreen) AddChild(children ...interface{}) {
 	for _, child := range children {
 		o.children.PushBack(child)
 	}
 }
 
-func (o *TOutput) drawBounds(vp, cr *TRect) {
-	o.SetClipRect(nil)
+func (o *TScreen) drawBounds(vp, cr *TRect) {
+	SetClipRect(o, nil)
 
 	o.SetDrawColor(255, 0, 0, 255)
 	r := vp.Copy()
@@ -107,7 +121,7 @@ func (o *TOutput) drawBounds(vp, cr *TRect) {
 	o.DrawRect(r.Bounds())
 }
 
-func (o *TOutput) drawChildren(children []interface{}, clipRect *TRect) {
+func (o *TScreen) drawChildren(children []interface{}, clipRect *TRect) {
 	scrW, scrH := o.Size()
 	oldX, oldY := o.GetZeroPoint()
 	for _, i := range children {
@@ -120,8 +134,8 @@ func (o *TOutput) drawChildren(children []interface{}, clipRect *TRect) {
 		if ok := cr.Intersect(bounds); !ok {
 			cr.SetSize(0, 0)
 		}
-		// o.drawBounds(bounds, cr) //debug
-		o.SetClipRect(cr)
+		o.drawBounds(bounds, cr) //debug
+		SetClipRect(o, cr)
 		o.MoveZeroPoint(bx, by)
 		if child, ok := i.(IDraw); ok {
 			child.Draw()
@@ -133,7 +147,6 @@ func (o *TOutput) drawChildren(children []interface{}, clipRect *TRect) {
 			if ok := cr.Intersect(cb); !ok {
 				cr.SetSize(0, 0)
 			}
-			o.SetClipRect(cr)
 			o.MoveZeroPoint(cbx, cby)
 			cr.Move(-cbx, -cby)
 		}
@@ -145,153 +158,141 @@ func (o *TOutput) drawChildren(children []interface{}, clipRect *TRect) {
 }
 
 // Draw -
-func (o *TOutput) Draw() {
+func (o *TScreen) Draw() {
 	o.SetFillColor(0, 0, 0, 0)
 	o.Clear()
 	o.SetZeroPoint(0, 0)
 	w, h := o.Size()
 	o.drawChildren(o.children.Data(), NewRect(0, 0, w, h))
 	o.SetZeroPoint(0, 0)
+	log.Debug("_____________________________________________")
 }
 
 // SetZeroPoint -
-func (o *TOutput) SetZeroPoint(x, y int) {
+func (o *TScreen) SetZeroPoint(x, y int) {
 	o.zeroX = x
 	o.zeroY = y
 }
 
 // MoveZeroPoint -
-func (o *TOutput) MoveZeroPoint(x, y int) {
+func (o *TScreen) MoveZeroPoint(x, y int) {
 	o.zeroX += x
 	o.zeroY += y
 }
 
 // GetZeroPoint -
-func (o *TOutput) GetZeroPoint() (x, y int) {
+func (o *TScreen) GetZeroPoint() (x, y int) {
 	return o.zeroX, o.zeroY
 }
 
 // SetDrawColor -
-func (o *TOutput) SetDrawColor(r, g, b, a int) {
+func (o *TScreen) SetDrawColor(r, g, b, a int) {
 	o.drawColor.SetRGBA(r, g, b, a)
 }
 
 // SetFillColor -
-func (o *TOutput) SetFillColor(r, g, b, a int) {
+func (o *TScreen) SetFillColor(r, g, b, a int) {
 	o.fillColor.SetRGBA(r, g, b, a)
 }
 
-func (o *TOutput) setDrawColor() {
+func (o *TScreen) setDrawColor() {
 	o.renderer.SetDrawColor(o.drawColor.R, o.drawColor.G, o.drawColor.B, o.drawColor.A)
 }
 
-func (o *TOutput) setFillColor() {
+func (o *TScreen) setFillColor() {
 	o.renderer.SetDrawColor(o.fillColor.R, o.fillColor.G, o.fillColor.B, o.fillColor.A)
 }
 
 // DrawText -
-func (o *TOutput) DrawText(s string, x, y int) {
-	if s == "" {
-		return
-	}
+func (o *TScreen) DrawText(s string, x, y int) {
 	var surfaceText *sdl.Surface
 	var textureText *sdl.Texture
 	x += o.zeroX
 	y += o.zeroY
 	err := error(nil)
 	surfaceText, err = o.Font().RenderUTF8Blended(s, o.drawColor.Sdl())
-	log.Error(err, "DrawText")
+
+	log.Error(err, surfaceText, " DrawText")
+	if surfaceText == nil {
+		return
+	}
+	log.Debug(surfaceText.W)
 	defer surfaceText.Free()
 	textureText, err = o.renderer.CreateTextureFromSurface(surfaceText)
 	rect := NewEmptyRect().
 		SetPos(x, y).
 		SetSize32(surfaceText.W, surfaceText.H)
 	o.renderer.Copy(textureText, nil, rect.Sdl())
+	o.PostUpdate()
 }
 
 // Font -
-func (o *TOutput) Font() *ttf.Font {
+func (o *TScreen) Font() *ttf.Font {
 	return o.font
 }
 
 // SetFont -
-func (o *TOutput) SetFont(font *ttf.Font) {
+func (o *TScreen) SetFont(font *ttf.Font) {
 	o.font = font
 }
 
 // Clear -
-func (o *TOutput) Clear() {
+func (o *TScreen) Clear() {
 	o.setFillColor()
 	o.renderer.Clear()
 }
 
 // FillRect -
-func (o *TOutput) FillRect(x1, y1, w, h int) {
+func (o *TScreen) FillRect(x1, y1, w, h int) {
 	x1 += o.zeroX
 	y1 += o.zeroY
 	o.setFillColor()
 	// o.renderer.FillRect(&sdl.Rect{X: int32(x1), Y: int32(y1), W: int32(w), H: int32(h)})
 	rect := NewRect(x1, y1, w, h)
 	o.renderer.FillRect(rect.Sdl())
+	o.PostUpdate()
 }
 
 // DrawLine -
-func (o *TOutput) DrawLine(x1, y1, x2, y2 int) {
+func (o *TScreen) DrawLine(x1, y1, x2, y2 int) {
 	x1 += o.zeroX
 	y1 += o.zeroY
 	x2 += o.zeroX
 	y2 += o.zeroY
 	o.setDrawColor()
 	o.renderer.DrawLine(int32(x1), int32(y1), int32(x2), int32(y2))
+	o.PostUpdate()
 }
 
 // DrawRect -
-func (o *TOutput) DrawRect(x1, y1, w, h int) {
+func (o *TScreen) DrawRect(x1, y1, w, h int) {
 	x1 += o.zeroX
 	y1 += o.zeroY
 	o.setDrawColor()
 	// o.renderer.DrawRect(&sdl.Rect{X: int32(x1), Y: int32(y1), W: int32(w), H: int32(h)})
 	rect := NewRect(x1, y1, w, h)
 	o.renderer.DrawRect(rect.Sdl())
-
-}
-
-// SetViewport -
-func (o *TOutput) SetViewport(rect *TRect) error {
-	if rect == nil {
-		return o.renderer.SetViewport(nil)
-	}
-	return o.renderer.SetViewport(rect.Sdl())
-}
-
-// GetViewport -
-func (o *TOutput) GetViewport() *TRect {
-	return &TRect{Rect: o.renderer.GetViewport()}
+	o.PostUpdate()
 }
 
 // SetClipRect -
-func (o *TOutput) SetClipRect(rect *TRect) error {
+func SetClipRect(scr *TScreen, rect *TRect) error {
 	if rect == nil {
-		return o.renderer.SetClipRect(nil)
+		return scr.renderer.SetClipRect(nil)
 	}
 	r := *rect
-	r.Move(o.zeroX, o.zeroY)
-	return o.renderer.SetClipRect(r.Sdl())
+	r.Move(scr.zeroX, scr.zeroY)
+	return scr.renderer.SetClipRect(r.Sdl())
 }
 
-// // GetClipRect -
-// func (o *TOutput) GetClipRect() *TRect {
-// 	return &TRect{Rect: o.renderer.GetClipRect()}
-// }
-
 // Size -
-func (o *TOutput) Size() (int, int) {
+func (o *TScreen) Size() (int, int) {
 	w, h, err := o.renderer.GetOutputSize()
 	log.Error(err, "Size(): GetOutputSize")
 	return int(w), int(h)
 }
 
 // Flush -
-func (o *TOutput) Flush() {
+func (o *TScreen) Flush() {
 	o.renderer.Present()
 }

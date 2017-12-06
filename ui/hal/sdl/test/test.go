@@ -32,7 +32,7 @@ func main() {
 	v := sdl.Version{}
 	sdl.GetVersion(&v)
 	log.Info("version: ", v)
-	output, _ := x.NewOutput()
+	output, _ := x.NewScreen()
 	// x.NewOutput()
 	// x.NewOutput()
 	// x.NewOutput()

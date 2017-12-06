@@ -88,7 +88,7 @@ func (o *TWidget) ClientRect() *hal.TRect {
 
 // Draw -
 func (o *TWidget) Draw() {
-	scr := hal.Output()
+	scr := hal.Screen()
 	log.Error(scr == nil, "Output is nil")
 	scr.SetFillColor(50, 60, 70, 255)
 	r := hal.NewRect(0, 0, o.rect.W(), o.rect.H())
@@ -160,7 +160,7 @@ func (o *TTextWidget) Bounds() *hal.TRect {
 
 // Draw -
 func (o *TTextWidget) Draw() {
-	scr := hal.Output()
+	scr := hal.Screen()
 	log.Error(scr == nil, "Output is nil")
 	scr.SetFillColor(o.color.RGBA())
 	scr.FillRect(0, 0, o.rect.W(), o.rect.H())

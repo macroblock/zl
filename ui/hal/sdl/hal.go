@@ -7,21 +7,21 @@ import (
 	"github.com/veandco/go-sdl2/ttf"
 )
 
-import "C"
+// import "C"
 
 var log = zlog.Instance("zl/sdl")
 
 var hal *THal
 
-var currentOutput = stubOutput
+var currentScreen = stubScreen
 
-// Output -
-func Output() IOutput       { return currentOutput }
-func makeCurrent(o IOutput) { currentOutput = o }
+// Screen -
+func Screen() IScreen       { return currentScreen }
+func makeCurrent(o IScreen) { currentScreen = o }
 
 // THal -
 type THal struct {
-	outputs map[uint32]*TOutput
+	screen map[uint32]*TScreen
 }
 
 // New -
@@ -32,7 +32,7 @@ func New() (*THal, error) {
 	}
 
 	hal = &THal{}
-	hal.outputs = make(map[uint32]*TOutput)
+	hal.screen = make(map[uint32]*TScreen)
 
 	err := sdl.Init(sdl.INIT_EVERYTHING)
 	log.Error(err, "New: sdl.Init")
@@ -58,27 +58,40 @@ func (o *THal) Close() {
 	// 	log.Error(!ok, "THal.Close: object is not TOutput")
 	// 	output.Close()
 	// }
-	for key := range o.outputs {
-		delete(o.outputs, key)
+	for key := range o.screen {
+		delete(o.screen, key)
 	}
-	o.outputs = nil
+	o.screen = nil
 	hal = nil
 	ttf.Quit()
 	sdl.Quit()
 }
 
-// NewOutput -
-func (o *THal) NewOutput() (IOutput, error) {
+// NewScreen -
+func (o *THal) NewScreen() (IScreen, error) {
 	win, r, err := sdl.CreateWindowAndRenderer(640, 480, sdl.WINDOW_SHOWN|sdl.WINDOW_RESIZABLE)
 	log.Error(err, "NewOutput: sdl.CreateWindowAndRenderer")
-	ret := &TOutput{hal: o, window: win, renderer: r, font: defaultFont}
-	//o.outputs.PushBack(ret)
+	scr := &TScreen{hal: o, window: win, renderer: r, font: defaultFont}
+	//o.outputs.PushBack(scr)
 	id, err := win.GetID()
 	log.Error(err, "NewOutput: Window.GetID")
-	o.outputs[id] = ret
-	makeCurrent(ret)
+	o.screen[id] = scr
+	makeCurrent(scr)
+	scr.PostUpdate()
 	log.Debug("Create window id: ", id)
-	return ret, err
+	return scr, err
+}
+
+// Screen -
+func (o *THal) Screen(id int) IScreen {
+	scr := IScreen(nil)
+	ok := false
+	scr, ok = o.screen[uint32(id)]
+	log.Warning(!ok, "screen(): screen not found - id: ", id)
+	if !ok || scr == nil {
+		scr = stubScreen
+	}
+	return scr
 }
 
 // Event -
@@ -89,11 +102,21 @@ func (o *THal) Event() events.IEvent {
 	}
 	switch t := e.(type) {
 	case *sdl.KeyboardEvent:
-		event := events.NewKeyboardEvent(rune(t.Keysym.Sym), int(t.Keysym.Mod))
+		event := events.NewKeyboardEvent(o.Screen(int(t.WindowID)), int(t.WindowID), rune(t.Keysym.Sym), int(t.Keysym.Mod))
 		return event
 	case *sdl.DropEvent:
 		if t.Type == sdl.DROPFILE {
-			event := events.NewDropFileEvent(t.File)
+			event := events.NewDropFileEvent(o.Screen(int(t.WindowID)), int(t.WindowID), t.File)
+			return event
+		}
+	case *sdl.WindowEvent:
+		switch t.Event {
+		case sdl.WINDOWEVENT_CLOSE:
+			event := events.NewWindowCloseEvent(o.Screen(int(t.WindowID)), int(t.WindowID))
+			return event
+		case sdl.WINDOWEVENT_RESIZED:
+			event := events.NewWindowResizedEvent(o.Screen(int(t.WindowID)), int(t.WindowID), int(t.Data1), int(t.Data2))
+			o.Screen(int(t.WindowID)).PostUpdate()
 			return event
 		}
 	case *sdl.CommonEvent:
@@ -104,14 +127,16 @@ func (o *THal) Event() events.IEvent {
 
 // Draw -
 func (o *THal) Draw() {
-	for id, output := range o.outputs {
+	for id, output := range o.screen {
 		log.Warning(output == nil, "output id: ", id, " is nil")
-		if output == nil {
+		if output == nil || !output.NeedUpdate() {
 			continue
 		}
 		makeCurrent(output)
 		output.Draw()
 		output.Flush()
+		output.ResetUpdate()
+
 	}
-	makeCurrent(stubOutput)
+	makeCurrent(stubScreen)
 }
