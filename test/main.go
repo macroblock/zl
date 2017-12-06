@@ -21,7 +21,13 @@ func main() {
 		SetColor(50, 0, 0, 255).
 		SetText("test12345678456411").
 		SetPos(20, 10).
-		SetSize(150, 150)
+		SetSize(100, 100)
+	iw := widget.NewWidget().
+		SetName("Inner Widget").
+		SetColor(0, 0, 50, 255).
+		SetPos(40, 40).
+		SetSize(150, 150).
+		AddChild(tw)
 	out.AddChild(
 		// widget.NewWidget().
 		// 	SetColor(255, 0, 0, 255).
@@ -77,7 +83,7 @@ func main() {
 			SetColor(0, 50, 0, 255).
 			SetPos(40, 40).
 			SetSize(200, 200).
-			AddChild(tw))
+			AddChild(iw))
 
 	event := events.IEvent(nil)
 	quit := false
@@ -95,20 +101,33 @@ func main() {
 		}
 		switch ev := event.(type) {
 		case *events.TKeyboardEvent:
+			//log.Info(ev.Rune())
 			if ev.Rune() == 'q' {
 				quit = true
 			}
 			if ev.Rune() == 'a' {
-				tw.AddPos(-1, 0)
+				tw.AddPos(-5, 0)
 			}
 			if ev.Rune() == 'w' {
-				tw.AddPos(0, -1)
+				tw.AddPos(0, -5)
 			}
 			if ev.Rune() == 'd' {
-				tw.AddPos(1, 0)
+				tw.AddPos(5, 0)
 			}
 			if ev.Rune() == 's' {
-				tw.AddPos(0, 1)
+				tw.AddPos(0, 5)
+			}
+			if ev.Rune() == 'h' {
+				iw.AddPos(-5, 0)
+			}
+			if ev.Rune() == 'k' {
+				iw.AddPos(0, -5)
+			}
+			if ev.Rune() == 'l' {
+				iw.AddPos(5, 0)
+			}
+			if ev.Rune() == 'j' {
+				iw.AddPos(0, 5)
 			}
 		case *events.TDropFileEvent:
 			log.Info(ev.Content())

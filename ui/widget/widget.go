@@ -71,6 +71,12 @@ func (o *TWidget) Bounds() *hal.TRect {
 	return &hal.TRect{Rect: *o.rect.Sdl()}
 }
 
+// AddPos -
+func (o *TWidget) AddPos(x, y int) *TWidget {
+	o.rect.SetPos(o.rect.X()+x, o.rect.Y()+y)
+	return o
+}
+
 // ClientRect -
 func (o *TWidget) ClientRect() *hal.TRect {
 	r := hal.NewRect(0, 0, o.rect.W(), o.rect.H())

@@ -118,9 +118,9 @@ func (o *TOutput) drawChildren(children []interface{}, clipRect *TRect) {
 		bx, by := bounds.Pos()
 		cr := clipRect.Copy()
 		if ok := cr.Intersect(bounds); !ok {
-			// continue
+			cr.SetSize(0, 0)
 		}
-		//o.drawBounds(bounds, cr) //debug
+		// o.drawBounds(bounds, cr) //debug
 		o.SetClipRect(cr)
 		o.MoveZeroPoint(bx, by)
 		if child, ok := i.(IDraw); ok {
@@ -130,11 +130,12 @@ func (o *TOutput) drawChildren(children []interface{}, clipRect *TRect) {
 		if child, ok := i.(IClientRect); ok {
 			cb := child.ClientRect()
 			cbx, cby := cb.Pos()
-			cr.Intersect(cb)
+			if ok := cr.Intersect(cb); !ok {
+				cr.SetSize(0, 0)
+			}
 			o.SetClipRect(cr)
 			o.MoveZeroPoint(cbx, cby)
 			cr.Move(-cbx, -cby)
-
 		}
 		if child, ok := i.(IChildren); ok {
 			o.drawChildren(child.Children(), cr)
