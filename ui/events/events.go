@@ -11,6 +11,8 @@ import (
 
 var log = zlog.Instance("events")
 
+const _mE = "events "
+
 // IScreen -
 type IScreen interface {
 	Close()

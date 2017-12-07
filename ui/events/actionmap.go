@@ -7,6 +7,8 @@ type tActionMap struct {
 	mode       string
 }
 
+var _mAM = "actionmap "
+
 // ActionMap -
 var ActionMap tActionMap
 
@@ -20,14 +22,14 @@ func (o *tActionMap) Add(action IAction) {
 		initActionMap()
 	}
 	_, ok := o.byName[action.Name()]
-	log.Warning(ok, "Add(): action is already set (overwriten)")
+	log.Warning(ok, _mAM, "action Add: action is already set (overwriten)")
 	o.byName[action.Name()] = action
 }
 
 // Delete -
 func (o *tActionMap) Delete(action IAction) {
 	_, ok := o.byName[action.Name()]
-	log.Warning(!ok, "Delete(): action isn't set (skiped)")
+	log.Warning(!ok, _mAM, "Delete: action isn't set (skiped)")
 	delete(o.byName, action.Name())
 }
 
@@ -36,7 +38,7 @@ func (o *tActionMap) Apply() {
 	o.byEventKey = map[string]IAction{}
 	for _, act := range o.byName {
 		_, ok := o.byEventKey[act.EventKey()]
-		log.Warning(!ok, "Apply(): action is already set (overwriten)")
+		log.Warning(ok, _mAM, "Apply: action is already set (overwriten)")
 		o.byEventKey[act.EventKey()] = act
 	}
 }

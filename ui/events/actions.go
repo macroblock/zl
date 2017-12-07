@@ -1,5 +1,7 @@
 package events
 
+const _mA = "actions "
+
 type (
 	// TAction -
 	TAction struct {
@@ -83,6 +85,6 @@ func (o *TKeyboardAction) Do(ev IEvent) bool {
 		return false
 	}
 	keybEvent, ok := ev.(*TKeyboardEvent)
-	log.Warning(ok, "incompatible event <,", ev, "> in <,", o, "> method")
+	log.Warning(!ok, _mA, "Do: incompatible event <", ev, "> in <", o, "> method")
 	return o.handler(*keybEvent)
 }
