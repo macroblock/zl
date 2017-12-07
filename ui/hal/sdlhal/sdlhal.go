@@ -1,8 +1,9 @@
-package hal
+package sdlhal
 
 import (
 	"github.com/macroblock/zl/core/zlog"
 	"github.com/macroblock/zl/ui/events"
+	"github.com/macroblock/zl/ui/hal"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -11,13 +12,13 @@ import (
 
 var log = zlog.Instance("zl/sdl")
 
-var hal *THal
+var _hal *THal
 
-var currentScreen = stubScreen
+var currentScreen = hal.StubScreen()
 
 // Screen -
-func Screen() IScreen       { return currentScreen }
-func makeCurrent(o IScreen) { currentScreen = o }
+func Screen() hal.IScreen       { return currentScreen }
+func makeCurrent(o hal.IScreen) { currentScreen = o }
 
 // THal -
 type THal struct {
@@ -26,13 +27,13 @@ type THal struct {
 
 // New -
 func New() (*THal, error) {
-	if hal != nil {
+	if _hal != nil {
 		log.Warning(true, "New: HAL was already intialized")
 		return nil, nil
 	}
 
-	hal = &THal{}
-	hal.screen = make(map[uint32]*TScreen)
+	_hal = &THal{}
+	_hal.screen = make(map[uint32]*TScreen)
 
 	err := sdl.Init(sdl.INIT_EVERYTHING)
 	log.Error(err, "New: sdl.Init")
@@ -42,12 +43,12 @@ func New() (*THal, error) {
 
 	InitFonts()
 
-	return hal, nil
+	return _hal, nil
 }
 
 // Close -
 func (o *THal) Close() {
-	if hal == nil {
+	if _hal == nil {
 		log.Warning(true, "THal.Close: HAL isn't initialized yet")
 		return
 	}
@@ -62,13 +63,13 @@ func (o *THal) Close() {
 		delete(o.screen, key)
 	}
 	o.screen = nil
-	hal = nil
+	_hal = nil
 	ttf.Quit()
 	sdl.Quit()
 }
 
 // NewScreen -
-func (o *THal) NewScreen() (IScreen, error) {
+func (o *THal) NewScreen() (hal.IScreen, error) {
 	win, r, err := sdl.CreateWindowAndRenderer(640, 480, sdl.WINDOW_SHOWN|sdl.WINDOW_RESIZABLE)
 	log.Error(err, "NewOutput: sdl.CreateWindowAndRenderer")
 	scr := &TScreen{hal: o, window: win, renderer: r, font: defaultFont}
@@ -83,13 +84,13 @@ func (o *THal) NewScreen() (IScreen, error) {
 }
 
 // Screen -
-func (o *THal) Screen(id int) IScreen {
-	scr := IScreen(nil)
+func (o *THal) Screen(id int) hal.IScreen {
+	scr := hal.IScreen(nil)
 	ok := false
 	scr, ok = o.screen[uint32(id)]
 	log.Warning(!ok, "screen(): screen not found - id: ", id)
 	if !ok || scr == nil {
-		scr = stubScreen
+		scr = hal.StubScreen()
 	}
 	return scr
 }
@@ -138,5 +139,5 @@ func (o *THal) Draw() {
 		output.ResetUpdate()
 
 	}
-	makeCurrent(stubScreen)
+	makeCurrent(hal.StubScreen())
 }

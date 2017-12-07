@@ -14,7 +14,7 @@ import (
 	"github.com/macroblock/zl/core/zlog"
 	"github.com/macroblock/zl/core/zlogger"
 	"github.com/macroblock/zl/ui/events"
-	"github.com/macroblock/zl/ui/hal/sdl"
+	"github.com/macroblock/zl/ui/hal/sdlhal"
 )
 
 var log = zlog.Instance("main")
@@ -28,7 +28,7 @@ func main() {
 			Styler(zlogger.AnsiStyler).
 			Done())
 
-	x, _ := hal.New()
+	x, _ := sdlhal.New()
 	v := sdl.Version{}
 	sdl.GetVersion(&v)
 	log.Info("version: ", v)

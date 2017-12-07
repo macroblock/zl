@@ -1,4 +1,4 @@
-package vector
+package types
 
 import (
 	"fmt"

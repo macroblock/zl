@@ -5,8 +5,11 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/macroblock/zl/core/zlog"
 	"github.com/veandco/go-sdl2/ttf"
 )
+
+var log = zlog.Instance("events")
 
 // IScreen -
 type IScreen interface {
@@ -75,7 +78,7 @@ func (o *TEvent) Screen() IScreen {
 
 // String -
 func (o *TEvent) String() string {
-	return o.time.Format("15:04:05.000") + " " + o.IEvent.Type()
+	return o.time.Format("15:04:05.000") + " " + o.IEvent.Type() + " [" + o.IEvent.EventKey() + "] "
 }
 
 // // TActionKeyboardMap -
@@ -126,7 +129,7 @@ func (o *TKeyboardEvent) ScanCode() int {
 
 // EventKey -
 func (o *TKeyboardEvent) EventKey() string {
-	return fmt.Sprintf("%q", o.ch)
+	return fmt.Sprintf("%s", string(o.ch))
 }
 
 // String -

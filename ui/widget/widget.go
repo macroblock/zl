@@ -2,8 +2,8 @@ package widget
 
 import (
 	"github.com/macroblock/zl/core/zlog"
-	"github.com/macroblock/zl/types/vector"
-	hal "github.com/macroblock/zl/ui/hal/sdl"
+	"github.com/macroblock/zl/types"
+	"github.com/macroblock/zl/ui/hal/sdlhal"
 )
 
 var log = zlog.Instance("widget")
@@ -11,9 +11,9 @@ var log = zlog.Instance("widget")
 // TWidget -
 type TWidget struct {
 	name     string
-	rect     hal.TRect
-	color    hal.TColor
-	children vector.TVector
+	rect     types.TRect
+	color    sdlhal.TColor
+	children types.TVector
 }
 
 //TTextWidget -
@@ -54,7 +54,7 @@ func (o *TWidget) SetColor(r, g, b, a int) *TWidget {
 }
 
 // AddChild -
-func (o *TWidget) AddChild(v ...hal.IDraw) *TWidget {
+func (o *TWidget) AddChild(v ...sdlhal.IDraw) *TWidget {
 	for _, child := range v {
 		o.children.PushBack(child)
 	}
@@ -67,31 +67,33 @@ func (o *TWidget) Children() []interface{} {
 }
 
 // Bounds -
-func (o *TWidget) Bounds() *hal.TRect {
-	return &hal.TRect{Rect: *o.rect.Sdl()}
+func (o *TWidget) Bounds() *types.TRect {
+	r := o.rect
+	return &r
 }
 
 // AddPos -
 func (o *TWidget) AddPos(x, y int) *TWidget {
-	o.rect.SetPos(o.rect.X()+x, o.rect.Y()+y)
+	o.rect.X += x
+	o.rect.Y += y
 	return o
 }
 
 // ClientRect -
-func (o *TWidget) ClientRect() *hal.TRect {
-	r := hal.NewRect(0, 0, o.rect.W(), o.rect.H())
-	r.Rect.Y += 20
-	r.Rect.H -= 20
+func (o *TWidget) ClientRect() *types.TRect {
+	r := types.NewRect(0, 0, o.rect.W, o.rect.H)
+	r.Y += 20
+	r.H -= 20
 	r.Shrink(5)
 	return r
 }
 
 // Draw -
 func (o *TWidget) Draw() {
-	scr := hal.Screen()
+	scr := sdlhal.Screen()
 	log.Error(scr == nil, "Output is nil")
 	scr.SetFillColor(50, 60, 70, 255)
-	r := hal.NewRect(0, 0, o.rect.W(), o.rect.H())
+	r := types.NewRect(0, 0, o.rect.W, o.rect.H)
 	scr.FillRect(r.Bounds())
 
 	scr.SetDrawColor(0, 0, 0, 255)
@@ -102,8 +104,8 @@ func (o *TWidget) Draw() {
 	scr.DrawRect(r.Bounds())
 
 	scr.SetFillColor(o.color.RGBA())
-	r.Rect.Y += 20
-	r.Rect.H -= 20
+	r.Y += 20
+	r.H -= 20
 	r.Shrink(4)
 	scr.FillRect(r.Bounds())
 
@@ -137,7 +139,7 @@ func (o *TTextWidget) SetPos(x, y int) *TTextWidget {
 
 // AddPos -
 func (o *TTextWidget) AddPos(x, y int) *TTextWidget {
-	o.rect.SetPos(o.rect.X()+x, o.rect.Y()+y)
+	o.rect.SetPos(o.rect.X+x, o.rect.Y+y)
 	return o
 }
 
@@ -154,19 +156,20 @@ func (o *TTextWidget) SetColor(r, g, b, a int) *TTextWidget {
 }
 
 // Bounds -
-func (o *TTextWidget) Bounds() *hal.TRect {
-	return &hal.TRect{Rect: *o.rect.Sdl()}
+func (o *TTextWidget) Bounds() *types.TRect {
+	r := o.rect
+	return &r
 }
 
 // Draw -
 func (o *TTextWidget) Draw() {
-	scr := hal.Screen()
+	scr := sdlhal.Screen()
 	log.Error(scr == nil, "Output is nil")
 	scr.SetFillColor(o.color.RGBA())
-	scr.FillRect(0, 0, o.rect.W(), o.rect.H())
+	scr.FillRect(0, 0, o.rect.W, o.rect.H)
 	scr.SetDrawColor(0, 200, 255, 255)
 	scr.DrawText(o.s, 0, 0)
-	scr.DrawLine(0, 0, o.rect.W(), o.rect.H())
+	scr.DrawLine(0, 0, o.rect.W, o.rect.H)
 	scr.SetDrawColor(100, 100, 100, 255)
-	scr.DrawRect(0, 0, o.rect.W(), o.rect.H())
+	scr.DrawRect(0, 0, o.rect.W, o.rect.H)
 }

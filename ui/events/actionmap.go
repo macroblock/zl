@@ -3,54 +3,55 @@ package events
 type tActionMap struct {
 	byName     map[string]IAction
 	byEventKey map[string]IAction
+	Test       map[string]IAction
 	mode       string
 }
 
 // ActionMap -
 var ActionMap tActionMap
 
-// InitActionMap -
-func InitActionMap() {
-	ActionMap = tActionMap{}
+func initActionMap() {
 	ActionMap.byName = map[string]IAction{}
-	ActionMap.Apply()
 }
 
 // Add -
-func (am *tActionMap) Add(action IAction) {
-	_, ok := am.byName[action.Name()]
+func (o *tActionMap) Add(action IAction) {
+	if ActionMap.byName == nil {
+		initActionMap()
+	}
+	_, ok := o.byName[action.Name()]
 	log.Warning(ok, "Add(): action is already set (overwriten)")
-	am.byName[action.Name()] = action
+	o.byName[action.Name()] = action
 }
 
 // Delete -
-func (am *tActionMap) Delete(action IAction) {
-	_, ok := am.byName[action.Name()]
+func (o *tActionMap) Delete(action IAction) {
+	_, ok := o.byName[action.Name()]
 	log.Warning(!ok, "Delete(): action isn't set (skiped)")
-	delete(am.byName, action.Name())
+	delete(o.byName, action.Name())
 }
 
 // Apply -
-func (am *tActionMap) Apply() {
-	am.byEventKey = map[string]IAction{}
-	for _, act := range am.byName {
-		_, ok := am.byEventKey[act.EventKey()]
+func (o *tActionMap) Apply() {
+	o.byEventKey = map[string]IAction{}
+	for _, act := range o.byName {
+		_, ok := o.byEventKey[act.EventKey()]
 		log.Warning(!ok, "Apply(): action is already set (overwriten)")
-		am.byEventKey[act.EventKey()] = act
+		o.byEventKey[act.EventKey()] = act
 	}
 }
 
 // SetMode -
-func (am *tActionMap) SetMode(mode string) {
-	am.mode = mode
-	if len(am.mode) > 0 {
-		am.mode += "/"
+func (o *tActionMap) SetMode(mode string) {
+	o.mode = mode
+	if len(o.mode) > 0 {
+		o.mode += "/"
 	}
 }
 
 // HandleEvent -
 func HandleEvent(ev IEvent) {
-	if act, ok := ActionMap.byEventKey[ActionMap.mode+ev.EventKey()]; ok {
+	if act, ok := ActionMap.byEventKey[ev.EventKey()]; ok {
 		act.Do(ev)
 	}
 }

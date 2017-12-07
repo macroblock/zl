@@ -6,11 +6,13 @@ import (
 	"github.com/macroblock/zl/core/zlog"
 	"github.com/macroblock/zl/core/zlogger"
 	"github.com/macroblock/zl/ui/events"
-	"github.com/macroblock/zl/ui/hal/sdl"
+	"github.com/macroblock/zl/ui/hal/sdlhal"
 	"github.com/macroblock/zl/ui/widget"
 )
 
 var log = zlog.Instance("main")
+
+var quit = false
 
 func randString(n int) string {
 	str := ""
@@ -24,7 +26,7 @@ func main() {
 
 	a := 1820
 	log.Add(zlogger.Build().Styler(zlogger.AnsiStyler).Done())
-	x, err := hal.New()
+	x, err := sdlhal.New()
 	log.Error(err, "New hal")
 	out, err := x.NewScreen()
 	tw := widget.NewTextWidget().
@@ -39,65 +41,11 @@ func main() {
 		SetSize(150, 150).
 		AddChild(tw)
 	out.AddChild(
-		// widget.NewWidget().
-		// 	SetColor(255, 0, 0, 255).
-		// 	SetPos(50, 50),
-		// widget.NewWidget().
-		// 	SetColor(0, 255, 0, 255).
-		// 	SetPos(100, 50),
-		// widget.NewWidget().
-		// 	SetColor(0, 0, 255, 255).
-		// 	SetPos(150, 50),
-		// widget.NewTextWidget().
-		// 	SetText("text012345678").
-		// 	SetColor(255, 0, 255, 255).
-		// 	SetPos(200, 50),
-		// widget.NewWidget().
-		// 	SetColor(100, 0, 0, 255).
-		// 	SetPos(50, 100).
-		// 	SetSize(200, 300).
-		// 	AddChild(
-		// 		widget.NewTextWidget().
-		// 			SetText("one0123456789").
-		// 			SetColor(0, 100, 0, 255).
-		// 			SetPos(-20, 5),
-		// 		widget.NewTextWidget().
-		// 			SetText("two685410651065").
-		// 			SetColor(0, 0, 100, 255).
-		// 			SetPos(55, 5),
-		// 		widget.NewWidget().
-		// 			SetSize(100, 100).
-		// 			SetPos(-20, 150).
-		// 			AddChild(
-		// 				widget.NewTextWidget().
-		// 					SetText("three012345678").
-		// 					SetColor(0, 0, 100, 255).
-		// 					SetPos(5, 5),
-		// 				widget.NewTextWidget().
-		// 					SetText("four68406540").
-		// 					SetColor(0, 0, 100, 255).
-		// 					SetPos(55, 55)),
-		// 		widget.NewTextWidget().
-		// 			SetText("five").
-		// 			SetPos(50, 50).
-		// 			SetSize(70, 50)),
 		widget.NewWidget().
 			SetName("12fasdfasfd").
 			SetColor(0, 0, 100, 255).
 			SetSize(100, 100).
 			SetPos(300, 200),
-		// AddChild(
-		// widget.NewTextWidget().
-		// 	SetText("12345678").
-		// 	SetColor(0, 200, 100, 255).
-		// 	SetSize(100, 100).
-		// 	SetPos(-80, 10).
-		// 	AddChild(
-		// 		widget.NewTextWidget().
-		// 			SetText("12345678").
-		// 			SetColor(200, 0, 100, 255).
-		// 			SetSize(100, 100).
-		// 			SetPos(-80, 0))),
 		widget.NewWidget().
 			SetName("Second").
 			SetColor(0, 50, 0, 255).
@@ -105,15 +53,18 @@ func main() {
 			SetSize(200, 200).
 			AddChild(iw))
 
-	event := events.IEvent(nil)
-	events.InitActionMap()
-
+	events.NewKeyboardAction("quit", "q", "", func(ev events.TKeyboardEvent) bool {
+		log.Debug("quit")
+		quit = true
+		return true
+	})
 	events.NewKeyboardAction("refresh", "i", "", func(ev events.TKeyboardEvent) bool {
 		log.Debug("refresh")
 		x.Draw()
 		return true
 	})
-	quit := false
+	events.ActionMap.Apply()
+	event := events.IEvent(nil)
 	for !quit {
 		x.Draw()
 		// hal.Output().Flush()
@@ -125,6 +76,7 @@ func main() {
 			time.Sleep(1)
 		}
 		log.Debug(event)
+		// events.HandleEvent(event)
 		switch ev := event.(type) {
 		case *events.TKeyboardEvent:
 			//log.Info(ev.Rune())
@@ -164,7 +116,7 @@ func main() {
 			quit = true
 		case *events.TDropFileEvent:
 			log.Info(ev.Content())
-		}
-	}
+		} // switch
+	} // for !quit
 	x.Close()
 }

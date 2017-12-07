@@ -1,29 +1,11 @@
-package hal
+package sdlhal
 
 import (
-	"github.com/macroblock/zl/types/vector"
+	"github.com/macroblock/zl/types"
+	"github.com/macroblock/zl/ui/hal"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
-
-// IScreen -
-type IScreen interface {
-	Close()
-	AddChild(children ...interface{})
-	Draw()
-	SetDrawColor(r, g, b, a int)
-	SetFillColor(r, g, b, a int)
-	DrawText(s string, x, y int)
-	Font() *ttf.Font
-	SetFont(font *ttf.Font)
-	Clear()
-	FillRect(x1, y1, w, h int)
-	DrawLine(x1, y1, x2, y2 int)
-	DrawRect(x1, y1, w, h int)
-	Flush()
-	PostUpdate()
-	// GetClipRect() *TRect
-}
 
 // TScreen -
 type TScreen struct {
@@ -34,12 +16,12 @@ type TScreen struct {
 	renderer     *sdl.Renderer
 	fillColor    TColor
 	drawColor    TColor
-	children     vector.TVector
+	children     types.TVector
 	font         *ttf.Font
 	needUpdate   bool
 }
 
-var _ IScreen = (*TScreen)(nil)
+var _ hal.IScreen = (*TScreen)(nil)
 
 type (
 	// IDraw -
@@ -54,12 +36,12 @@ type (
 
 	// IBounds -
 	IBounds interface {
-		Bounds() *TRect
+		Bounds() *types.TRect
 	}
 
 	// IClientRect -
 	IClientRect interface {
-		ClientRect() *TRect
+		ClientRect() *types.TRect
 	}
 )
 
@@ -71,7 +53,7 @@ func (o *TScreen) Close() {
 	log.Debug("close window id:", id)
 	log.Error(err, "TOutput.Close(): Window.GetID")
 	if o == Screen() {
-		makeCurrent(stubScreen)
+		makeCurrent(hal.StubScreen())
 	}
 	delete(o.hal.screen, id)
 
@@ -107,8 +89,8 @@ func (o *TScreen) AddChild(children ...interface{}) {
 	}
 }
 
-func (o *TScreen) drawBounds(vp, cr *TRect) {
-	SetClipRect(o, nil)
+func (o *TScreen) drawBounds(vp, cr *types.TRect) {
+	o.SetClipRect(nil)
 
 	o.SetDrawColor(255, 0, 0, 255)
 	r := vp.Copy()
@@ -121,36 +103,30 @@ func (o *TScreen) drawBounds(vp, cr *TRect) {
 	o.DrawRect(r.Bounds())
 }
 
-func (o *TScreen) drawChildren(children []interface{}, clipRect *TRect) {
+func (o *TScreen) drawChildren(children []interface{}, clipRect *types.TRect) {
 	scrW, scrH := o.Size()
 	oldX, oldY := o.GetZeroPoint()
 	for _, i := range children {
-		bounds := NewRect(-oldX, -oldY, scrW, scrH)
+		bounds := types.NewRect(-oldX, -oldY, scrW, scrH)
 		if child, ok := i.(IBounds); ok {
 			bounds = child.Bounds()
 		}
-		bx, by := bounds.Pos()
 		cr := clipRect.Copy()
-		if ok := cr.Intersect(bounds); !ok {
-			cr.SetSize(0, 0)
-		}
-		// o.drawBounds(bounds, cr) //debug
-		SetClipRect(o, cr)
-		o.MoveZeroPoint(bx, by)
+		hasIntersect := cr.Intersect(bounds)
+		o.drawBounds(bounds, cr) //debug
+		o.SetClipRect(cr)
+		o.MoveZeroPoint(bounds.X, bounds.Y)
 		if child, ok := i.(IDraw); ok {
 			child.Draw()
 		}
-		cr.Move(-bx, -by)
-		if child, ok := i.(IClientRect); ok {
+		cr.Move(-bounds.X, -bounds.Y)
+		if child, ok := i.(IClientRect); ok && hasIntersect {
 			cb := child.ClientRect()
-			cbx, cby := cb.Pos()
-			if ok := cr.Intersect(cb); !ok {
-				cr.SetSize(0, 0)
-			}
-			cr.Move(-cbx, -cby)
-			o.MoveZeroPoint(cbx, cby)
+			hasIntersect = cr.Intersect(cb)
+			cr.Move(-cb.X, -cb.Y)
+			o.MoveZeroPoint(cb.X, cb.Y)
 		}
-		if child, ok := i.(IChildren); ok {
+		if child, ok := i.(IChildren); ok && hasIntersect {
 			o.drawChildren(child.Children(), cr)
 		}
 		o.SetZeroPoint(oldX, oldY)
@@ -163,7 +139,7 @@ func (o *TScreen) Draw() {
 	o.Clear()
 	o.SetZeroPoint(0, 0)
 	w, h := o.Size()
-	o.drawChildren(o.children.Data(), NewRect(0, 0, w, h))
+	o.drawChildren(o.children.Data(), types.NewRect(0, 0, w, h))
 	o.SetZeroPoint(0, 0)
 	log.Debug("_____________________________________________")
 }
@@ -211,18 +187,14 @@ func (o *TScreen) DrawText(s string, x, y int) {
 	y += o.zeroY
 	err := error(nil)
 	surfaceText, err = o.Font().RenderUTF8Blended(s, o.drawColor.Sdl())
-
 	log.Error(err, surfaceText, " DrawText")
 	if surfaceText == nil {
 		return
 	}
-	log.Debug(surfaceText.W)
 	defer surfaceText.Free()
 	textureText, err = o.renderer.CreateTextureFromSurface(surfaceText)
-	rect := NewEmptyRect().
-		SetPos(x, y).
-		SetSize32(surfaceText.W, surfaceText.H)
-	o.renderer.Copy(textureText, nil, rect.Sdl())
+	rect := sdl.Rect{X: int32(x), Y: int32(y), W: surfaceText.W, H: surfaceText.H}
+	o.renderer.Copy(textureText, nil, &rect)
 	o.PostUpdate()
 }
 
@@ -248,8 +220,8 @@ func (o *TScreen) FillRect(x1, y1, w, h int) {
 	y1 += o.zeroY
 	o.setFillColor()
 	// o.renderer.FillRect(&sdl.Rect{X: int32(x1), Y: int32(y1), W: int32(w), H: int32(h)})
-	rect := NewRect(x1, y1, w, h)
-	o.renderer.FillRect(rect.Sdl())
+	rect := sdl.Rect{X: int32(x1), Y: int32(y1), W: int32(w), H: int32(h)}
+	o.renderer.FillRect(&rect)
 	o.PostUpdate()
 }
 
@@ -270,19 +242,18 @@ func (o *TScreen) DrawRect(x1, y1, w, h int) {
 	y1 += o.zeroY
 	o.setDrawColor()
 	// o.renderer.DrawRect(&sdl.Rect{X: int32(x1), Y: int32(y1), W: int32(w), H: int32(h)})
-	rect := NewRect(x1, y1, w, h)
-	o.renderer.DrawRect(rect.Sdl())
+	rect := sdl.Rect{X: int32(x1), Y: int32(y1), W: int32(w), H: int32(h)}
+	o.renderer.DrawRect(&rect)
 	o.PostUpdate()
 }
 
 // SetClipRect -
-func SetClipRect(scr *TScreen, rect *TRect) error {
+func (o *TScreen) SetClipRect(rect *types.TRect) error {
 	if rect == nil {
-		return scr.renderer.SetClipRect(nil)
+		return o.renderer.SetClipRect(nil)
 	}
-	r := *rect
-	r.Move(scr.zeroX, scr.zeroY)
-	return scr.renderer.SetClipRect(r.Sdl())
+	r := sdl.Rect{X: int32(rect.X + o.zeroX), Y: int32(rect.Y + o.zeroY), W: int32(rect.W), H: int32(rect.H)}
+	return o.renderer.SetClipRect(&r)
 }
 
 // Size -

@@ -1,4 +1,4 @@
-package hal
+package sdlhal
 
 import (
 	"unsafe"

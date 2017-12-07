@@ -1,6 +1,9 @@
 package hal
 
-import "github.com/veandco/go-sdl2/ttf"
+import (
+	"github.com/macroblock/zl/types"
+	"github.com/veandco/go-sdl2/ttf"
+)
 
 var stubScreen IScreen = &tStubOutput{}
 
@@ -8,6 +11,11 @@ type tStubOutput struct {
 }
 
 var _ IScreen = (*tStubOutput)(nil)
+
+// StubScreen -
+func StubScreen() IScreen {
+	return stubScreen
+}
 
 func errMsg() { log.Error(true, "Output is not initialized") }
 
@@ -52,3 +60,6 @@ func (o *tStubOutput) PostUpdate() { errMsg() }
 
 // Flush -
 func (o *tStubOutput) Flush() { errMsg() }
+
+// SetClipRect -
+func (o *tStubOutput) SetClipRect(rect *types.TRect) error { errMsg(); return nil }
