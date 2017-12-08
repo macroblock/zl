@@ -22,5 +22,6 @@ type IScreen interface {
 	Flush()
 	PostUpdate()
 	SetClipRect(rect *types.TRect) error
+	Size() (int, int)
 	// GetClipRect() *TRect
 }

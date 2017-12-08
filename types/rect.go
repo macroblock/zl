@@ -1,6 +1,8 @@
 package types
 
-import "github.com/macroblock/zl/utils"
+import (
+	"github.com/macroblock/zl/utils"
+)
 
 // TRect -
 type TRect struct {
@@ -35,7 +37,14 @@ func (o *TRect) Equals(b *TRect) bool {
 
 // Intersect calculates the intersection of two rectangles.
 func (o *TRect) Intersect(b *TRect) bool {
-	if o.Empty() || b.Empty() {
+	if b == nil {
+		return true
+	}
+	if o == nil {
+		*o = *b
+		return true
+	}
+	if o.W <= 0 || o.H <= 0 || b.W <= 0 || b.H <= 0 {
 		o.W = 0
 		o.H = 0
 		return false
@@ -56,6 +65,9 @@ func (o *TRect) Intersect(b *TRect) bool {
 
 // Copy -
 func (o *TRect) Copy() *TRect {
+	if o == nil {
+		return nil
+	}
 	r := *o
 	return &r
 }

@@ -26,7 +26,7 @@ type THal struct {
 }
 
 // New -
-func New() (*THal, error) {
+func New() (hal.IHal, error) {
 	if _hal != nil {
 		log.Warning(true, "New: HAL was already intialized")
 		return nil, nil

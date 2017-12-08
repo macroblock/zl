@@ -6,14 +6,21 @@ import (
 	"github.com/macroblock/zl/core/zlog"
 	"github.com/macroblock/zl/core/zlogger"
 	"github.com/macroblock/zl/ui/events"
+	"github.com/macroblock/zl/ui/hal"
 	"github.com/macroblock/zl/ui/hal/sdlhal"
 	"github.com/macroblock/zl/ui/widget"
 )
 
 var log = zlog.Instance("main")
 
-var quit = false
-var currentWidget, w1, w2 *widget.TWidget
+var (
+	quit                  = false
+	currentWidget, w1, w2 *widget.TWidget
+	hal1                  hal.IHal
+	out                   hal.IScreen
+	err                   error
+	event                 events.IEvent
+)
 
 func randString(n int) string {
 	str := ""
@@ -61,16 +68,31 @@ func initialize() {
 
 		return true
 	})
+	events.NewWindowCloseAction("window close", "window close", "", func(ev events.TWindowCloseEvent) bool {
+		log.Debug("ping")
+		quit = true
+		return true
+	})
+	events.NewWindowResizedAction("window resized", "window resized", "", func(ev events.TWindowResizedEvent) bool {
+		screenw2, screenh2 := ev.Size()
+		w1.SetSize(100+screenw2-640, 100+screenh2-480)
+		ev.Screen().PostUpdate()
+		return true
+	})
+
 	events.ActionMap.Apply()
+	log.Debug(events.ActionMap)
 }
 
 func main() {
 
 	a := 1820
 	log.Add(zlogger.Build().Styler(zlogger.AnsiStyler).Done())
-	x, err := sdlhal.New()
+	hal1, err = sdlhal.New()
 	log.Error(err, "New hal")
-	out, err := x.NewScreen()
+	out, err = hal1.NewScreen()
+	currentScreen := hal1.Screen(1)
+	log.Debug(currentScreen)
 	w1 = widget.NewWidget().
 		SetColor(50, 0, 0, 255).
 		SetName(randString(a)).
@@ -98,10 +120,10 @@ func main() {
 	initialize()
 	event := events.IEvent(nil)
 	for !quit {
-		x.Draw()
+		hal1.Draw()
 		// hal.Output().Flush()
 		for {
-			event = x.Event()
+			event = hal1.Event()
 			if event != nil {
 				break
 			}
@@ -109,6 +131,13 @@ func main() {
 		}
 		log.Debug(event)
 		events.HandleEvent(event)
+		// switch ev := event.(type) {
+		// case *events.TWindowResizedEvent:
+		// 	// screenw1, screenh1 := currentScreen.Size()
+		// screenw2, screenh2 := ev.Size()
+		// w1.SetSize(100+screenw2-640, 100+screenh2-480)
+		// 	ev.Screen().PostUpdate()
+		// }
 		// switch ev := event.(type) {
 		// case *events.TKeyboardEvent:
 		// 	//log.Info(ev.Rune())
@@ -150,5 +179,5 @@ func main() {
 		// 	log.Info(ev.Content())
 		// } // switch
 	} // for !quit
-	x.Close()
+	hal1.Close()
 }

@@ -262,5 +262,7 @@ func (o *TWindowResizedEvent) String() string {
 
 // EventKey -
 func (o *TWindowResizedEvent) EventKey() string {
-	return fmt.Sprintf("window resized %v", o.windowID)
+	return fmt.Sprintf("window resized")
+
+	// return fmt.Sprintf("window resized %v", o.windowID)
 }

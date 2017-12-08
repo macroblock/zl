@@ -3,7 +3,6 @@ package events
 type tActionMap struct {
 	byName     map[string]IAction
 	byEventKey map[string]IAction
-	Test       map[string]IAction
 	mode       string
 }
 
@@ -14,6 +13,7 @@ var ActionMap tActionMap
 
 func initActionMap() {
 	ActionMap.byName = map[string]IAction{}
+	ActionMap.byEventKey = map[string]IAction{}
 }
 
 // Add -
@@ -53,7 +53,13 @@ func (o *tActionMap) SetMode(mode string) {
 
 // HandleEvent -
 func HandleEvent(ev IEvent) {
+	log.Debug("HandleEvent")
+	if act, ok := ActionMap.byName[ev.Type()]; ok {
+		log.Debug(ok)
+		act.Do(ev)
+	}
 	if act, ok := ActionMap.byEventKey[ev.EventKey()]; ok {
+		log.Debug(ok)
 		act.Do(ev)
 	}
 }

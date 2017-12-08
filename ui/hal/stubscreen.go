@@ -58,6 +58,9 @@ func (o *tStubOutput) DrawRect(x1, y1, w, h int) { errMsg() }
 // PostUpdate -
 func (o *tStubOutput) PostUpdate() { errMsg() }
 
+// Size -
+func (o *tStubOutput) Size() (int, int) { errMsg(); return 0, 0 }
+
 // Flush -
 func (o *tStubOutput) Flush() { errMsg() }
 
