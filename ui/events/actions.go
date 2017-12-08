@@ -143,7 +143,6 @@ func NewWindowResizedAction(name, eventKey, descr string, handler TWindowResized
 
 // Do -
 func (o *TWindowResizedAction) Do(ev IEvent) bool {
-	log.Debug("ping")
 	if o.handler == nil {
 		return false
 	}
