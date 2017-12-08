@@ -29,6 +29,8 @@ type IScreen interface {
 	DrawRect(x1, y1, w, h int)
 	Flush()
 	PostUpdate()
+	Size() (int, int)
+
 	// GetClipRect() *TRect
 }
 
@@ -236,12 +238,15 @@ type TWindowResizedEvent struct {
 	TWindowEvent
 	windowID int
 	w, h     int
+	wd, hd   int
 }
 
 // NewWindowResizedEvent -
 func NewWindowResizedEvent(scr IScreen, id, w, h int) *TWindowResizedEvent {
-	ret := &TWindowResizedEvent{TWindowEvent: *NewWindowEvent(scr, id), w: w, h: h}
+	scrW, scrH := scr.Size()
+	ret := &TWindowResizedEvent{TWindowEvent: *NewWindowEvent(scr, id), w: w, h: h, wd: scrW - w, hd: scrH - h}
 	ret.IEvent = ret
+
 	return ret
 }
 

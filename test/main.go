@@ -6,7 +6,6 @@ import (
 	"github.com/macroblock/zl/core/zlog"
 	"github.com/macroblock/zl/core/zlogger"
 	"github.com/macroblock/zl/ui/events"
-	"github.com/macroblock/zl/ui/hal"
 	"github.com/macroblock/zl/ui/hal/sdlhal"
 	"github.com/macroblock/zl/ui/widget"
 )
@@ -16,8 +15,6 @@ var log = zlog.Instance("main")
 var (
 	quit                  = false
 	currentWidget, w1, w2 *widget.TWidget
-	hal1                  hal.IHal
-	out                   hal.IScreen
 	err                   error
 	event                 events.IEvent
 )
@@ -88,10 +85,10 @@ func main() {
 
 	a := 1820
 	log.Add(zlogger.Build().Styler(zlogger.AnsiStyler).Done())
-	hal1, err = sdlhal.New()
+	hal, err := sdlhal.New()
 	log.Error(err, "New hal")
-	out, err = hal1.NewScreen()
-	currentScreen := hal1.Screen(1)
+	out, err := hal.NewScreen()
+	currentScreen := hal.Screen(1)
 	log.Debug(currentScreen)
 	w1 = widget.NewWidget().
 		SetColor(50, 0, 0, 255).
@@ -120,10 +117,10 @@ func main() {
 	initialize()
 	event := events.IEvent(nil)
 	for !quit {
-		hal1.Draw()
+		hal.Draw()
 		// hal.Output().Flush()
 		for {
-			event = hal1.Event()
+			event = hal.Event()
 			if event != nil {
 				break
 			}
@@ -179,5 +176,5 @@ func main() {
 		// 	log.Info(ev.Content())
 		// } // switch
 	} // for !quit
-	hal1.Close()
+	hal.Close()
 }

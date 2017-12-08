@@ -165,7 +165,6 @@ func NewWindowCloseAction(name, eventKey, descr string, handler TWindowCloseHand
 
 // Do -
 func (o *TWindowCloseAction) Do(ev IEvent) bool {
-	log.Debug("ping")
 	if o.handler == nil {
 		return false
 	}
