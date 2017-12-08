@@ -61,10 +61,6 @@ func initialize() {
 		currentWidget = w2
 		return true
 	})
-	events.NewKeyboardAction("3", "3", "", func(ev events.TKeyboardEvent) bool {
-
-		return true
-	})
 	events.NewWindowCloseAction("window close", "window close", "", func(ev events.TWindowCloseEvent) bool {
 		log.Debug("ping")
 		quit = true
