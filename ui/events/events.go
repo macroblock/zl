@@ -44,6 +44,11 @@ type (
 		String() string
 	}
 
+	// // IEvent -
+	// IEvent interface {
+	// 	hal.IEvent
+	// }
+
 	// TEvent -
 	TEvent struct {
 		IEvent

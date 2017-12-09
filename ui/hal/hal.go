@@ -15,3 +15,12 @@ type IHal interface {
 	Screen(id int) IScreen
 	Event() events.IEvent
 }
+
+// // IEvent -
+// type IEvent interface {
+// 	Time() time.Time
+// 	Type() string
+// 	EventKey() string
+// 	Screen() IScreen
+// 	String() string
+// }

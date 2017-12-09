@@ -28,46 +28,47 @@ func randString(n int) string {
 }
 
 func initialize() {
-	events.NewKeyboardAction("quit", "q", "", func(ev events.TKeyboardEvent) bool {
+	events.NewAction("quit", "q", "", func(ev events.IEvent) bool {
 		log.Debug("quit")
 		quit = true
 		return true
 	})
-	events.NewKeyboardAction("left", "a", "", func(ev events.TKeyboardEvent) bool {
+	events.NewAction("left", "a", "", func(ev events.IEvent) bool {
 		currentWidget.AddPos(-5, 0)
 		ev.Screen().PostUpdate()
 		return true
 	})
-	events.NewKeyboardAction("right", "d", "", func(ev events.TKeyboardEvent) bool {
+	events.NewAction("right", "d", "", func(ev events.IEvent) bool {
 		currentWidget.AddPos(5, 0)
 		ev.Screen().PostUpdate()
 		return true
 	})
-	events.NewKeyboardAction("up", "w", "", func(ev events.TKeyboardEvent) bool {
+	events.NewAction("up", "w", "", func(ev events.IEvent) bool {
 		currentWidget.AddPos(0, -5)
 		ev.Screen().PostUpdate()
 		return true
 	})
-	events.NewKeyboardAction("down", "s", "", func(ev events.TKeyboardEvent) bool {
+	events.NewAction("down", "s", "", func(ev events.IEvent) bool {
 		currentWidget.AddPos(0, 5)
 		ev.Screen().PostUpdate()
 		return true
 	})
-	events.NewKeyboardAction("1", "1", "", func(ev events.TKeyboardEvent) bool {
+	events.NewAction("1", "1", "", func(ev events.IEvent) bool {
 		currentWidget = w1
 		return true
 	})
-	events.NewKeyboardAction("2", "2", "", func(ev events.TKeyboardEvent) bool {
+	events.NewAction("2", "2", "", func(ev events.IEvent) bool {
 		currentWidget = w2
 		return true
 	})
-	events.NewWindowCloseAction("window close", "window close", "", func(ev events.TWindowCloseEvent) bool {
+	events.NewAction("window close", "window close", "", func(ev events.IEvent) bool {
 		log.Debug("ping")
 		quit = true
 		return true
 	})
-	events.NewWindowResizedAction("window resized", "window resized", "", func(ev events.TWindowResizedEvent) bool {
-		screenw2, screenh2 := ev.Size()
+	events.NewAction("window resized", "window resized", "", func(ev events.IEvent) bool {
+		event := events.ToWindowResized(ev)
+		screenw2, screenh2 := event.Size()
 		w1.SetSize(100+screenw2-640, 100+screenh2-480)
 		ev.Screen().PostUpdate()
 		return true
