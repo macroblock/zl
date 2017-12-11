@@ -12,6 +12,7 @@ type TScreen struct {
 	hal          *THal
 	zeroX, zeroY int
 	x, y         int
+	oldW, oldH   int
 	window       *sdl.Window
 	renderer     *sdl.Renderer
 	fillColor    TColor
@@ -261,6 +262,11 @@ func (o *TScreen) Size() (int, int) {
 	w, h, err := o.renderer.GetOutputSize()
 	log.Error(err, "Size(): GetOutputSize")
 	return int(w), int(h)
+}
+
+// OldSize -
+func (o *TScreen) OldSize() (int, int) {
+	return o.oldW, o.oldH
 }
 
 // Flush -

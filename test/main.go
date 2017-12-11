@@ -62,15 +62,25 @@ func initialize() {
 		return true
 	})
 	events.NewAction("window close", "window close", "", func(ev events.IEvent) bool {
-		log.Debug("ping")
 		quit = true
 		return true
 	})
 	events.NewAction("window resized", "window resized", "", func(ev events.IEvent) bool {
 		event := events.ToWindowResized(ev)
-		screenw2, screenh2 := event.Size()
-		w1.SetSize(100+screenw2-640, 100+screenh2-480)
+		// w, h := w1.Bounds
+		dw, dh := event.Delta()
+		// dw, dh := event.Delta(event.Screen())
+		log.Debug(dw, " ", dh)
+		w1.SetSize(w1.Bounds().W+dw, w1.Bounds().H+dh)
 		ev.Screen().PostUpdate()
+		return true
+	})
+
+	events.NewAction("mouse", "m1", "", func(ev events.IEvent) bool {
+		// event := events.ToMouse(ev)
+		// if event.Button==1 && event.Type=={
+
+		// }
 		return true
 	})
 

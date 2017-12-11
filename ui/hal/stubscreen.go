@@ -61,6 +61,9 @@ func (o *tStubOutput) PostUpdate() { errMsg() }
 // Size -
 func (o *tStubOutput) Size() (int, int) { errMsg(); return 0, 0 }
 
+// OldSize -
+func (o *tStubOutput) OldSize() (int, int) { errMsg(); return 0, 0 }
+
 // Flush -
 func (o *tStubOutput) Flush() { errMsg() }
 

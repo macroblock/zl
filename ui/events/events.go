@@ -243,13 +243,12 @@ type TWindowResizedEvent struct {
 	TWindowEvent
 	windowID int
 	w, h     int
-	wd, hd   int
+	dw, dh   int
 }
 
 // NewWindowResizedEvent -
-func NewWindowResizedEvent(scr IScreen, id, w, h int) *TWindowResizedEvent {
-	scrW, scrH := scr.Size()
-	ret := &TWindowResizedEvent{TWindowEvent: *NewWindowEvent(scr, id), w: w, h: h, wd: scrW - w, hd: scrH - h}
+func NewWindowResizedEvent(scr IScreen, id, w, h, dw, dh int) *TWindowResizedEvent {
+	ret := &TWindowResizedEvent{TWindowEvent: *NewWindowEvent(scr, id), w: w, h: h, dw: dw, dh: dh}
 	ret.IEvent = ret
 
 	return ret
@@ -258,6 +257,13 @@ func NewWindowResizedEvent(scr IScreen, id, w, h int) *TWindowResizedEvent {
 // Size -
 func (o *TWindowResizedEvent) Size() (int, int) {
 	return o.w, o.h
+}
+
+// Delta _
+func (o *TWindowResizedEvent) Delta() (int, int) {
+	return o.dw, o.dh
+	// scrW, scrH := scr.Size()
+	// return o.w - scrW, o.h - scrH
 }
 
 // Type -
@@ -273,6 +279,42 @@ func (o *TWindowResizedEvent) String() string {
 // EventKey -
 func (o *TWindowResizedEvent) EventKey() string {
 	return fmt.Sprintf("window resized")
-
 	// return fmt.Sprintf("window resized %v", o.windowID)
+}
+
+// TMouseButtonEvent -
+type TMouseButtonEvent struct {
+	TWindowEvent
+	x, y   int
+	button int
+	press  int
+	state  int
+	clicks int
+}
+
+// NewMouseButtonEvent -
+func NewMouseButtonEvent(scr IScreen, winID, x, y, button, press, state int) *TMouseButtonEvent {
+	ret := &TMouseButtonEvent{TWindowEvent: *NewWindowEvent(scr, winID), x: x, y: y, button: button, press: press, state: state}
+	ret.IEvent = ret
+	return ret
+}
+
+// Button -
+func (o *TMouseButtonEvent) Button() int {
+	return o.button
+}
+
+// Type -
+func (o *TMouseButtonEvent) Type() string {
+	return "mouse"
+}
+
+// String -
+func (o *TMouseButtonEvent) String() string {
+	return fmt.Sprintf("%v X:%v Y:%v type:%v state:%v", o.x, o.y, o.TWindowEvent.String(), o.press, o.state)
+}
+
+// EventKey -
+func (o *TMouseButtonEvent) EventKey() string {
+	return fmt.Sprintf("%v", o.button)
 }

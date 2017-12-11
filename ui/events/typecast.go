@@ -19,3 +19,8 @@ func ToWindowClose(ev IEvent) *TWindowCloseEvent {
 func ToWindowResized(ev IEvent) *TWindowResizedEvent {
 	return ev.(*TWindowResizedEvent)
 }
+
+// ToMouse -
+func ToMouse(ev IEvent) *TMouseButtonEvent {
+	return ev.(*TMouseButtonEvent)
+}

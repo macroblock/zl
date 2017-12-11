@@ -101,7 +101,11 @@ func (o *THal) Event() events.IEvent {
 	if e == nil {
 		return nil
 	}
+
 	switch t := e.(type) {
+	case *sdl.MouseButtonEvent:
+		event := events.NewMouseButtonEvent(o.Screen(int(t.WindowID)), int(t.WindowID), int(t.X), int(t.Y), int(t.Button), int(t.Type), int(t.State))
+		return event
 	case *sdl.KeyboardEvent:
 		event := events.NewKeyboardEvent(o.Screen(int(t.WindowID)), int(t.WindowID), rune(t.Keysym.Sym), int(t.Keysym.Mod))
 		return event
@@ -116,12 +120,17 @@ func (o *THal) Event() events.IEvent {
 			event := events.NewWindowCloseEvent(o.Screen(int(t.WindowID)), int(t.WindowID))
 			return event
 		case sdl.WINDOWEVENT_RESIZED:
-			event := events.NewWindowResizedEvent(o.Screen(int(t.WindowID)), int(t.WindowID), int(t.Data1), int(t.Data2))
-			o.Screen(int(t.WindowID)).PostUpdate()
+			w := int(t.Data1)
+			h := int(t.Data2)
+			scr := o.Screen(int(t.WindowID))
+			oldW, oldH := scr.OldSize()
+			event := events.NewWindowResizedEvent(o.Screen(int(t.WindowID)), int(t.WindowID), w, h, w-oldW, h-oldH)
+			scr.PostUpdate()
 			return event
 		}
 	case *sdl.CommonEvent:
 		log.Warning(true, "default event: ", t.Type)
+
 	} // end of switch
 	return nil
 }
