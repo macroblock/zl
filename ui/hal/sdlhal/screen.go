@@ -105,6 +105,52 @@ func (o *TScreen) drawBounds(vp, cr *types.TRect) {
 	o.DrawRect(r.Bounds())
 }
 
+// func (o *TScreen) drawChildren(children []interface{}, clipRect *types.TRect) {
+// 	scrW, scrH := o.Size()
+// 	oldX, oldY := o.GetZeroPoint()
+// 	for _, i := range children {
+// 		bounds := types.NewRect(-oldX, -oldY, scrW, scrH)
+// 		if child, ok := i.(IBounds); ok {
+// 			bounds = child.Bounds()
+// 		}
+// 		cr := clipRect.Copy()
+// 		hasIntersect := cr.Intersect(bounds)
+// 		o.drawBounds(bounds, cr) //debug
+// 		o.SetClipRect(cr)
+// 		o.MoveZeroPoint(bounds.X, bounds.Y)
+// 		if child, ok := i.(IDraw); ok {
+// 			child.Draw()
+// 		}
+// 		cr.Move(-bounds.X, -bounds.Y)
+// 		if child, ok := i.(IClientRect); ok && hasIntersect {
+// 			cb := child.ClientRect()
+// 			hasIntersect = cr.Intersect(cb)
+// 			cr.Move(-cb.X, -cb.Y)
+// 			o.MoveZeroPoint(cb.X, cb.Y)
+// 		}
+// 		if child, ok := i.(IChildren); ok && hasIntersect {
+// 			o.drawChildren(child.Children(), cr)
+// 		}
+// 		o.SetZeroPoint(oldX, oldY)
+// 	}
+// }
+
+// // Draw -
+// func (o *TScreen) Draw() {
+// 	o.SetFillColor(0, 0, 0, 0)
+// 	o.Clear()
+// 	o.SetZeroPoint(0, 0)
+// 	w, h := o.Size()
+// 	o.drawChildren(o.children.Data(), types.NewRect(0, 0, w, h))
+// 	o.SetZeroPoint(0, 0)
+// 	log.Debug("_____________________________________________")
+// }
+
+// func (o *TScreen) addChild(kernel *hal.IWidgetKernel, parent hal.IWidgetKernel) {
+// 	kernel.SetScreen = o
+// 	kernel.SetParent = parent
+// }
+
 func (o *TScreen) drawChildren(children []interface{}, clipRect *types.TRect) {
 	scrW, scrH := o.Size()
 	oldX, oldY := o.GetZeroPoint()

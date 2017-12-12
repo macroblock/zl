@@ -11,6 +11,7 @@ var log = zlog.Instance("widget")
 
 // TWidget -
 type TWidget struct {
+	hal.TWidgetKernel
 	name     string
 	rect     types.TRect
 	color    hal.TColor
@@ -26,6 +27,7 @@ type TTextWidget struct {
 // NewWidget -
 func NewWidget() *TWidget {
 	ret := &TWidget{}
+	ret.InitWidgetKernel()
 	ret.rect.SetSize(50, 50)
 	return ret
 }
