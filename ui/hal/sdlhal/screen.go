@@ -3,6 +3,7 @@ package sdlhal
 import (
 	"github.com/macroblock/zl/types"
 	"github.com/macroblock/zl/ui/hal"
+	"github.com/macroblock/zl/ui/hal/interfaces"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -15,14 +16,14 @@ type TScreen struct {
 	oldW, oldH   int
 	window       *sdl.Window
 	renderer     *sdl.Renderer
-	fillColor    TColor
-	drawColor    TColor
+	fillColor    hal.TColor
+	drawColor    hal.TColor
 	children     types.TVector
 	font         *ttf.Font
 	needUpdate   bool
 }
 
-var _ hal.IScreen = (*TScreen)(nil)
+var _ interfaces.IScreen = (*TScreen)(nil)
 
 type (
 	// IDraw -
@@ -173,11 +174,11 @@ func (o *TScreen) SetFillColor(r, g, b, a int) {
 }
 
 func (o *TScreen) setDrawColor() {
-	o.renderer.SetDrawColor(o.drawColor.R, o.drawColor.G, o.drawColor.B, o.drawColor.A)
+	o.renderer.SetDrawColor(o.drawColor.RGBA8())
 }
 
 func (o *TScreen) setFillColor() {
-	o.renderer.SetDrawColor(o.fillColor.R, o.fillColor.G, o.fillColor.B, o.fillColor.A)
+	o.renderer.SetDrawColor(o.fillColor.RGBA8())
 }
 
 // DrawText -
@@ -187,7 +188,11 @@ func (o *TScreen) DrawText(s string, x, y int) {
 	x += o.zeroX
 	y += o.zeroY
 	err := error(nil)
-	surfaceText, err = o.Font().RenderUTF8Blended(s, o.drawColor.Sdl())
+	color := sdl.Color{}
+	color.R, color.G, color.B, color.A = o.drawColor.RGBA8()
+	surfaceText, err = o.Font().RenderUTF8Blended(s, color)
+
+	// surfaceText, err = o.Font().RenderUTF8Blended(s, o.drawColor.Sdl())
 	log.Error(err, surfaceText, " DrawText")
 	if surfaceText == nil {
 		return

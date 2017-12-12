@@ -4,6 +4,7 @@ import (
 	"github.com/macroblock/zl/core/zlog"
 	"github.com/macroblock/zl/ui/events"
 	"github.com/macroblock/zl/ui/hal"
+	"github.com/macroblock/zl/ui/hal/interfaces"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -17,8 +18,8 @@ var _hal *THal
 var currentScreen = hal.StubScreen()
 
 // Screen -
-func Screen() hal.IScreen       { return currentScreen }
-func makeCurrent(o hal.IScreen) { currentScreen = o }
+func Screen() interfaces.IScreen       { return currentScreen }
+func makeCurrent(o interfaces.IScreen) { currentScreen = o }
 
 // THal -
 type THal struct {
@@ -69,7 +70,7 @@ func (o *THal) Close() {
 }
 
 // NewScreen -
-func (o *THal) NewScreen() (hal.IScreen, error) {
+func (o *THal) NewScreen() (interfaces.IScreen, error) {
 	win, r, err := sdl.CreateWindowAndRenderer(640, 480, sdl.WINDOW_SHOWN|sdl.WINDOW_RESIZABLE)
 	log.Error(err, "NewOutput: sdl.CreateWindowAndRenderer")
 	scr := &TScreen{hal: o, window: win, renderer: r, font: defaultFont}
@@ -84,8 +85,8 @@ func (o *THal) NewScreen() (hal.IScreen, error) {
 }
 
 // Screen -
-func (o *THal) Screen(id int) hal.IScreen {
-	scr := hal.IScreen(nil)
+func (o *THal) Screen(id int) interfaces.IScreen {
+	scr := interfaces.IScreen(nil)
 	ok := false
 	scr, ok = o.screen[uint32(id)]
 	log.Warning(!ok, "screen(): screen not found - id: ", id)

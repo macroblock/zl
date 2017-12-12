@@ -3,6 +3,7 @@ package hal
 import (
 	"github.com/macroblock/zl/core/zlog"
 	"github.com/macroblock/zl/ui/events"
+	"github.com/macroblock/zl/ui/hal/interfaces"
 )
 
 var log = zlog.Instance("hal")
@@ -11,8 +12,8 @@ var log = zlog.Instance("hal")
 type IHal interface {
 	Close()
 	Draw()
-	NewScreen() (IScreen, error)
-	Screen(id int) IScreen
+	NewScreen() (interfaces.IScreen, error)
+	Screen(id int) interfaces.IScreen
 	Event() events.IEvent
 }
 

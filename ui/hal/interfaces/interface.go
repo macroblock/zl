@@ -1,4 +1,4 @@
-package hal
+package interfaces
 
 import (
 	"github.com/macroblock/zl/types"

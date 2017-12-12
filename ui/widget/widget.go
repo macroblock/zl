@@ -3,6 +3,7 @@ package widget
 import (
 	"github.com/macroblock/zl/core/zlog"
 	"github.com/macroblock/zl/types"
+	"github.com/macroblock/zl/ui/hal"
 	"github.com/macroblock/zl/ui/hal/sdlhal"
 )
 
@@ -12,7 +13,7 @@ var log = zlog.Instance("widget")
 type TWidget struct {
 	name     string
 	rect     types.TRect
-	color    sdlhal.TColor
+	color    hal.TColor
 	children types.TVector
 }
 

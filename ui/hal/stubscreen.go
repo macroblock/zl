@@ -2,18 +2,19 @@ package hal
 
 import (
 	"github.com/macroblock/zl/types"
+	"github.com/macroblock/zl/ui/hal/interfaces"
 	"github.com/veandco/go-sdl2/ttf"
 )
 
-var stubScreen IScreen = &tStubOutput{}
+var stubScreen interfaces.IScreen = &tStubOutput{}
 
 type tStubOutput struct {
 }
 
-var _ IScreen = (*tStubOutput)(nil)
+var _ interfaces.IScreen = (*tStubOutput)(nil)
 
 // StubScreen -
-func StubScreen() IScreen {
+func StubScreen() interfaces.IScreen {
 	return stubScreen
 }
 
