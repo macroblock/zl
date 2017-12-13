@@ -45,6 +45,10 @@ type (
 	IClientRect interface {
 		ClientRect() *types.TRect
 	}
+
+	// IKernel interface{
+
+	// }
 )
 
 // Close -
@@ -146,10 +150,14 @@ func (o *TScreen) drawBounds(vp, cr *types.TRect) {
 // 	log.Debug("_____________________________________________")
 // }
 
-// func (o *TScreen) addChild(kernel *hal.IWidgetKernel, parent hal.IWidgetKernel) {
-// 	kernel.SetScreen = o
-// 	kernel.SetParent = parent
+// func (o *TScreen) AddChild(parent hal.IWidgetKernel, child interface{}) {
+
+// 	o.children.PushBack(child)
 // }
+
+func (o *TScreen) detach(v IDraw) {
+	o.children.Remove(o.children.IndexOf(v))
+}
 
 func (o *TScreen) drawChildren(children []interface{}, clipRect *types.TRect) {
 	scrW, scrH := o.Size()

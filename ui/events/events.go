@@ -6,33 +6,33 @@ import (
 	"unicode"
 
 	"github.com/macroblock/zl/core/zlog"
-	"github.com/veandco/go-sdl2/ttf"
+	"github.com/macroblock/zl/ui/hal/interfaces"
 )
 
 var log = zlog.Instance("events")
 
 const _mE = "events "
 
-// IScreen -
-type IScreen interface {
-	Close()
-	AddChild(children ...interface{})
-	Draw()
-	SetDrawColor(r, g, b, a int)
-	SetFillColor(r, g, b, a int)
-	DrawText(s string, x, y int)
-	Font() *ttf.Font
-	SetFont(font *ttf.Font)
-	Clear()
-	FillRect(x1, y1, w, h int)
-	DrawLine(x1, y1, x2, y2 int)
-	DrawRect(x1, y1, w, h int)
-	Flush()
-	PostUpdate()
-	Size() (int, int)
+// // interfaces.IScreen -
+// type IScreen interface {
+// 	Close()
+// 	AddChild(children ...interface{})
+// 	Draw()
+// 	SetDrawColor(r, g, b, a int)
+// 	SetFillColor(r, g, b, a int)
+// 	DrawText(s string, x, y int)
+// 	Font() *ttf.Font
+// 	SetFont(font *ttf.Font)
+// 	Clear()
+// 	FillRect(x1, y1, w, h int)
+// 	DrawLine(x1, y1, x2, y2 int)
+// 	DrawRect(x1, y1, w, h int)
+// 	Flush()
+// 	PostUpdate()
+// 	Size() (int, int)
 
-	// GetClipRect() *TRect
-}
+// 	// GetClipRect() *TRect
+// }
 
 type (
 	// IEvent -
@@ -40,7 +40,7 @@ type (
 		Time() time.Time
 		Type() string
 		EventKey() string
-		Screen() IScreen
+		Screen() interfaces.IScreen
 		String() string
 	}
 
@@ -53,12 +53,12 @@ type (
 	TEvent struct {
 		IEvent
 		time   time.Time
-		screen IScreen
+		screen interfaces.IScreen
 	}
 )
 
 // NewEvent -
-func NewEvent(scr IScreen) *TEvent {
+func NewEvent(scr interfaces.IScreen) *TEvent {
 	ret := &TEvent{time: time.Now()}
 	ret.IEvent = ret
 	ret.screen = scr
@@ -81,7 +81,7 @@ func (o *TEvent) EventKey() string {
 }
 
 // Screen -
-func (o *TEvent) Screen() IScreen {
+func (o *TEvent) Screen() interfaces.IScreen {
 	return o.screen
 }
 
@@ -115,7 +115,7 @@ type TKeyboardEvent struct {
 }
 
 // NewKeyboardEvent -
-func NewKeyboardEvent(scr IScreen, id int, ch rune, mod int) *TKeyboardEvent {
+func NewKeyboardEvent(scr interfaces.IScreen, id int, ch rune, mod int) *TKeyboardEvent {
 	ret := &TKeyboardEvent{TWindowEvent: *NewWindowEvent(scr, id), ch: ch, mod: mod}
 	ret.IEvent = ret
 	return ret
@@ -157,7 +157,7 @@ type TDropFileEvent struct {
 }
 
 // NewDropFileEvent -
-func NewDropFileEvent(scr IScreen, id int, s string) *TDropFileEvent {
+func NewDropFileEvent(scr interfaces.IScreen, id int, s string) *TDropFileEvent {
 	ret := &TDropFileEvent{TWindowEvent: *NewWindowEvent(scr, id), content: s}
 	ret.IEvent = ret
 	return ret
@@ -185,7 +185,7 @@ type TWindowEvent struct {
 }
 
 // NewWindowEvent -
-func NewWindowEvent(scr IScreen, id int) *TWindowEvent {
+func NewWindowEvent(scr interfaces.IScreen, id int) *TWindowEvent {
 	ret := &TWindowEvent{TEvent: *NewEvent(scr), windowID: id}
 	ret.IEvent = ret
 	return ret
@@ -217,7 +217,7 @@ type TWindowCloseEvent struct {
 }
 
 // NewWindowCloseEvent -
-func NewWindowCloseEvent(scr IScreen, id int) *TWindowCloseEvent {
+func NewWindowCloseEvent(scr interfaces.IScreen, id int) *TWindowCloseEvent {
 	ret := &TWindowCloseEvent{TWindowEvent: *NewWindowEvent(scr, id)}
 	ret.IEvent = ret
 	return ret
@@ -247,7 +247,7 @@ type TWindowResizedEvent struct {
 }
 
 // NewWindowResizedEvent -
-func NewWindowResizedEvent(scr IScreen, id, w, h, dw, dh int) *TWindowResizedEvent {
+func NewWindowResizedEvent(scr interfaces.IScreen, id, w, h, dw, dh int) *TWindowResizedEvent {
 	ret := &TWindowResizedEvent{TWindowEvent: *NewWindowEvent(scr, id), w: w, h: h, dw: dw, dh: dh}
 	ret.IEvent = ret
 
@@ -293,7 +293,7 @@ type TMouseButtonEvent struct {
 }
 
 // NewMouseButtonEvent -
-func NewMouseButtonEvent(scr IScreen, winID, x, y, button, press, state int) *TMouseButtonEvent {
+func NewMouseButtonEvent(scr interfaces.IScreen, winID, x, y, button, press, state int) *TMouseButtonEvent {
 	ret := &TMouseButtonEvent{TWindowEvent: *NewWindowEvent(scr, winID), x: x, y: y, button: button, press: press, state: state}
 	ret.IEvent = ret
 	return ret

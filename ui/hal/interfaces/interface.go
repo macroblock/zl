@@ -9,6 +9,7 @@ import (
 type IScreen interface {
 	Close()
 	AddChild(children ...interface{})
+	// AddChild(parent IWidgetKernel, child interface{})
 	Draw()
 	SetDrawColor(r, g, b, a int)
 	SetFillColor(r, g, b, a int)

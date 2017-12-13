@@ -8,6 +8,8 @@ import (
 type IWidgetKernel interface {
 	Parent() IWidgetKernel
 	Screen() interfaces.IScreen
+	SetScreen(scr interfaces.IScreen)
+	SetParent(parent IWidgetKernel)
 }
 
 // TWidgetKernel -
