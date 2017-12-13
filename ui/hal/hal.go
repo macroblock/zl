@@ -25,3 +25,12 @@ type IHal interface {
 // 	Screen() IScreen
 // 	String() string
 // }
+
+// ToWidgetKernel -
+func ToWidgetKernel(slice []interface{}) []interfaces.IWidgetKernel {
+	ret := make([]interfaces.IWidgetKernel, len(slice))
+	for i, v := range slice {
+		ret[i] = v.(interfaces.IWidgetKernel)
+	}
+	return ret
+}

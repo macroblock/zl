@@ -4,7 +4,7 @@ import (
 	"github.com/macroblock/zl/core/zlog"
 	"github.com/macroblock/zl/types"
 	"github.com/macroblock/zl/ui/hal"
-	"github.com/macroblock/zl/ui/hal/sdlhal"
+	"github.com/macroblock/zl/ui/hal/interfaces"
 )
 
 var log = zlog.Instance("widget")
@@ -57,16 +57,15 @@ func (o *TWidget) SetColor(r, g, b, a int) *TWidget {
 }
 
 // AddChild -
-func (o *TWidget) AddChild(v ...sdlhal.IDraw) *TWidget {
+func (o *TWidget) AddChild(v ...interfaces.IWidgetKernel) {
 	for _, child := range v {
 		o.children.PushBack(child)
 	}
-	return o
 }
 
 // Children -
-func (o *TWidget) Children() []interface{} {
-	return o.children.Data()
+func (o *TWidget) Children() []interfaces.IWidgetKernel {
+	return hal.ToWidgetKernel(o.children.Data())
 }
 
 // Bounds -
@@ -93,7 +92,8 @@ func (o *TWidget) ClientRect() *types.TRect {
 
 // Draw -
 func (o *TWidget) Draw() {
-	scr := sdlhal.Screen()
+	// scr := sdlhal.Screen()
+	scr := o.Screen()
 	log.Error(scr == nil, "Output is nil")
 	scr.SetFillColor(50, 60, 70, 255)
 	r := types.NewRect(0, 0, o.rect.W, o.rect.H)
@@ -166,7 +166,8 @@ func (o *TTextWidget) Bounds() *types.TRect {
 
 // Draw -
 func (o *TTextWidget) Draw() {
-	scr := sdlhal.Screen()
+	// scr := sdlhal.Screen()
+	scr := o.Screen()
 	log.Error(scr == nil, "Output is nil")
 	scr.SetFillColor(o.color.RGBA())
 	scr.FillRect(0, 0, o.rect.W, o.rect.H)

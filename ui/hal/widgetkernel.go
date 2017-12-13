@@ -4,27 +4,19 @@ import (
 	"github.com/macroblock/zl/ui/hal/interfaces"
 )
 
-// IWidgetKernel -
-type IWidgetKernel interface {
-	Parent() IWidgetKernel
-	Screen() interfaces.IScreen
-	SetScreen(scr interfaces.IScreen)
-	SetParent(parent IWidgetKernel)
-}
-
 // TWidgetKernel -
 type TWidgetKernel struct {
 	scr    interfaces.IScreen
-	parent IWidgetKernel
+	parent interfaces.IWidgetKernel
 }
 
 // InitWidgetKernel -
 func (o *TWidgetKernel) InitWidgetKernel() {
-	o.scr = StubScreen()
+	// o.scr = StubScreen()
 }
 
 // Parent -
-func (o *TWidgetKernel) Parent() IWidgetKernel {
+func (o *TWidgetKernel) Parent() interfaces.IWidgetKernel {
 	return o.parent
 }
 
@@ -39,6 +31,6 @@ func (o *TWidgetKernel) SetScreen(scr interfaces.IScreen) {
 }
 
 // SetParent -
-func (o *TWidgetKernel) SetParent(parent IWidgetKernel) {
+func (o *TWidgetKernel) SetParent(parent interfaces.IWidgetKernel) {
 	o.parent = parent
 }

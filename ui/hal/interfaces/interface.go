@@ -8,8 +8,8 @@ import (
 // IScreen -
 type IScreen interface {
 	Close()
-	AddChild(children ...interface{})
-	// AddChild(parent IWidgetKernel, child interface{})
+	// AddChild(children ...interface{})
+	AddChild(children ...IWidgetKernel)
 	Draw()
 	SetDrawColor(r, g, b, a int)
 	SetFillColor(r, g, b, a int)
@@ -26,4 +26,12 @@ type IScreen interface {
 	Size() (int, int)
 	OldSize() (int, int)
 	// GetClipRect() *TRect
+}
+
+// IWidgetKernel -
+type IWidgetKernel interface {
+	Parent() IWidgetKernel
+	Screen() IScreen
+	SetScreen(scr IScreen)
+	SetParent(parent IWidgetKernel)
 }

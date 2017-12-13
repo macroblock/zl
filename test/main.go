@@ -13,10 +13,10 @@ import (
 var log = zlog.Instance("main")
 
 var (
-	quit                  = false
-	currentWidget, w1, w2 *widget.TWidget
-	err                   error
-	event                 events.IEvent
+	quit                   = false
+	currentWidget, w1, w11 *widget.TWidget
+	err                    error
+	event                  events.IEvent
 )
 
 func randString(n int) string {
@@ -35,22 +35,22 @@ func initialize() {
 	})
 	events.NewAction("left", "a", "", func(ev events.IEvent) bool {
 		currentWidget.AddPos(-5, 0)
-		ev.Screen().PostUpdate()
+		currentWidget.Screen().PostUpdate()
 		return true
 	})
 	events.NewAction("right", "d", "", func(ev events.IEvent) bool {
 		currentWidget.AddPos(5, 0)
-		ev.Screen().PostUpdate()
+		currentWidget.Screen().PostUpdate()
 		return true
 	})
 	events.NewAction("up", "w", "", func(ev events.IEvent) bool {
 		currentWidget.AddPos(0, -5)
-		ev.Screen().PostUpdate()
+		currentWidget.Screen().PostUpdate()
 		return true
 	})
 	events.NewAction("down", "s", "", func(ev events.IEvent) bool {
 		currentWidget.AddPos(0, 5)
-		ev.Screen().PostUpdate()
+		currentWidget.Screen().PostUpdate()
 		return true
 	})
 	events.NewAction("1", "1", "", func(ev events.IEvent) bool {
@@ -58,7 +58,7 @@ func initialize() {
 		return true
 	})
 	events.NewAction("2", "2", "", func(ev events.IEvent) bool {
-		currentWidget = w2
+		currentWidget = w11
 		return true
 	})
 	events.NewAction("window close", "window close", "", func(ev events.IEvent) bool {
@@ -71,8 +71,8 @@ func initialize() {
 		dw, dh := event.Delta()
 		// dw, dh := event.Delta(event.Screen())
 		log.Debug(dw, " ", dh)
-		w1.SetSize(w1.Bounds().W+dw, w1.Bounds().H+dh)
-		ev.Screen().PostUpdate()
+		// w1.SetSize(w1.Bounds().W+dw, w1.Bounds().H+dh)
+		currentWidget.Screen().PostUpdate()
 		return true
 	})
 
@@ -94,34 +94,38 @@ func main() {
 	log.Add(zlogger.Build().Styler(zlogger.AnsiStyler).Done())
 	hal, err := sdlhal.New()
 	log.Error(err, "New hal")
-	out, err := hal.NewScreen()
+	scr, err := hal.NewScreen()
 	currentScreen := hal.Screen(1)
 	log.Debug(currentScreen)
-	w1 = widget.NewWidget().
+	w111 := widget.NewWidget().
 		SetColor(50, 0, 0, 255).
 		SetName(randString(a)).
 		SetPos(20, 10).
 		SetSize(100, 100)
-	w2 = widget.NewWidget().
+	w11 = widget.NewWidget().
 		SetName("Inner Widget").
 		SetColor(0, 0, 50, 255).
 		SetPos(40, 40).
-		SetSize(150, 150).
-		AddChild(w1)
-	out.AddChild(
-		widget.NewWidget().
-			SetName("12fasdfasfd").
-			SetColor(0, 0, 100, 255).
-			SetSize(100, 100).
-			SetPos(300, 200),
-		widget.NewWidget().
-			SetName("Second").
-			SetColor(0, 50, 0, 255).
-			SetPos(40, 40).
-			SetSize(200, 200).
-			AddChild(w2))
+		SetSize(150, 150)
+	w11.AddChild(w111)
+
+	w1 = widget.NewWidget().
+		SetName("Second").
+		SetColor(0, 50, 0, 255).
+		SetPos(40, 40).
+		SetSize(200, 200)
+	w1.AddChild(w11)
+
+	w2 := widget.NewWidget().
+		SetName("12fasdfasfd").
+		SetColor(0, 0, 100, 255).
+		SetSize(100, 100).
+		SetPos(300, 200)
+	// out.AddChild(w1, w2)
+	scr.AddChild(w1, w2)
 	currentWidget = w1
 	initialize()
+
 	event := events.IEvent(nil)
 	for !quit {
 		hal.Draw()

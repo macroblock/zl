@@ -15,11 +15,7 @@ var log = zlog.Instance("zl/sdl")
 
 var _hal *THal
 
-var currentScreen = hal.StubScreen()
-
-// Screen -
-func Screen() interfaces.IScreen       { return currentScreen }
-func makeCurrent(o interfaces.IScreen) { currentScreen = o }
+var currentScreen interfaces.IScreen
 
 // THal -
 type THal struct {
@@ -78,7 +74,7 @@ func (o *THal) NewScreen() (interfaces.IScreen, error) {
 	id, err := win.GetID()
 	log.Error(err, "NewOutput: Window.GetID")
 	o.screen[id] = scr
-	makeCurrent(scr)
+	// makeCurrent(scr)
 	scr.PostUpdate()
 	log.Debug("Create window id: ", id)
 	return scr, err
@@ -90,9 +86,9 @@ func (o *THal) Screen(id int) interfaces.IScreen {
 	ok := false
 	scr, ok = o.screen[uint32(id)]
 	log.Warning(!ok, "screen(): screen not found - id: ", id)
-	if !ok || scr == nil {
-		scr = hal.StubScreen()
-	}
+	// if !ok || scr == nil {
+	// 	scr = hal.StubScreen()
+	// }
 	return scr
 }
 
@@ -143,11 +139,8 @@ func (o *THal) Draw() {
 		if output == nil || !output.NeedUpdate() {
 			continue
 		}
-		makeCurrent(output)
 		output.Draw()
 		output.Flush()
 		output.ResetUpdate()
-
 	}
-	makeCurrent(hal.StubScreen())
 }

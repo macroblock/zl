@@ -10,6 +10,7 @@ import (
 
 // TScreen -
 type TScreen struct {
+	hal.TWidgetKernel
 	hal          *THal
 	zeroX, zeroY int
 	x, y         int
@@ -33,7 +34,7 @@ type (
 
 	// IChildren -
 	IChildren interface {
-		Children() []interface{}
+		Children() []interfaces.IWidgetKernel
 	}
 
 	// IBounds -
@@ -45,10 +46,10 @@ type (
 	IClientRect interface {
 		ClientRect() *types.TRect
 	}
-
-	// IKernel interface{
-
-	// }
+	// IAddChild -
+	IAddChild interface {
+		AddChild(v ...interfaces.IWidgetKernel)
+	}
 )
 
 // Close -
@@ -58,9 +59,9 @@ func (o *TScreen) Close() {
 	id, err := o.window.GetID()
 	log.Debug("close window id:", id)
 	log.Error(err, "TOutput.Close(): Window.GetID")
-	if o == Screen() {
-		makeCurrent(hal.StubScreen())
-	}
+	// if o == Screen() {
+	// 	makeCurrent(hal.StubScreen())
+	// }
 	delete(o.hal.screen, id)
 
 	if o.renderer != nil {
@@ -88,12 +89,12 @@ func (o *TScreen) NeedUpdate() bool {
 	return o.needUpdate
 }
 
-// AddChild -
-func (o *TScreen) AddChild(children ...interface{}) {
-	for _, child := range children {
-		o.children.PushBack(child)
-	}
-}
+// // AddChild -
+// func (o *TScreen) AddChild(children ...interface{}) {
+// for _, child := range children {
+// 	o.children.PushBack(child)
+// }
+// }
 
 func (o *TScreen) drawBounds(vp, cr *types.TRect) {
 	o.SetClipRect(nil)
@@ -109,57 +110,35 @@ func (o *TScreen) drawBounds(vp, cr *types.TRect) {
 	o.DrawRect(r.Bounds())
 }
 
-// func (o *TScreen) drawChildren(children []interface{}, clipRect *types.TRect) {
-// 	scrW, scrH := o.Size()
-// 	oldX, oldY := o.GetZeroPoint()
-// 	for _, i := range children {
-// 		bounds := types.NewRect(-oldX, -oldY, scrW, scrH)
-// 		if child, ok := i.(IBounds); ok {
-// 			bounds = child.Bounds()
-// 		}
-// 		cr := clipRect.Copy()
-// 		hasIntersect := cr.Intersect(bounds)
-// 		o.drawBounds(bounds, cr) //debug
-// 		o.SetClipRect(cr)
-// 		o.MoveZeroPoint(bounds.X, bounds.Y)
-// 		if child, ok := i.(IDraw); ok {
-// 			child.Draw()
-// 		}
-// 		cr.Move(-bounds.X, -bounds.Y)
-// 		if child, ok := i.(IClientRect); ok && hasIntersect {
-// 			cb := child.ClientRect()
-// 			hasIntersect = cr.Intersect(cb)
-// 			cr.Move(-cb.X, -cb.Y)
-// 			o.MoveZeroPoint(cb.X, cb.Y)
-// 		}
-// 		if child, ok := i.(IChildren); ok && hasIntersect {
-// 			o.drawChildren(child.Children(), cr)
-// 		}
-// 		o.SetZeroPoint(oldX, oldY)
-// 	}
-// }
-
-// // Draw -
-// func (o *TScreen) Draw() {
-// 	o.SetFillColor(0, 0, 0, 0)
-// 	o.Clear()
-// 	o.SetZeroPoint(0, 0)
-// 	w, h := o.Size()
-// 	o.drawChildren(o.children.Data(), types.NewRect(0, 0, w, h))
-// 	o.SetZeroPoint(0, 0)
-// 	log.Debug("_____________________________________________")
-// }
-
-// func (o *TScreen) AddChild(parent hal.IWidgetKernel, child interface{}) {
-
-// 	o.children.PushBack(child)
-// }
-
-func (o *TScreen) detach(v IDraw) {
-	o.children.Remove(o.children.IndexOf(v))
+func initChildren(parent interfaces.IWidgetKernel, children []interfaces.IWidgetKernel) {
+	for _, child := range children {
+		child.SetParent(parent)
+		child.SetScreen(parent.Screen())
+		if ch, ok := child.(IChildren); ok {
+			initChildren(child, ch.Children())
+		}
+	}
 }
 
-func (o *TScreen) drawChildren(children []interface{}, clipRect *types.TRect) {
+// AddChild -
+func (o *TScreen) AddChild(children ...interfaces.IWidgetKernel) {
+	for _, child := range children {
+		o.children.PushBack(child)
+		child.SetParent(o)
+		child.SetScreen(o)
+		if ch, ok := child.(IChildren); ok {
+			initChildren(child, ch.Children())
+		}
+	}
+}
+
+// Remove -
+func (o *TScreen) Remove(v interfaces.IWidgetKernel) {
+	o.children.Remove(o.children.IndexOf(v))
+
+}
+
+func (o *TScreen) drawChildren(children []interfaces.IWidgetKernel, clipRect *types.TRect) {
 	scrW, scrH := o.Size()
 	oldX, oldY := o.GetZeroPoint()
 	for _, i := range children {
@@ -195,7 +174,7 @@ func (o *TScreen) Draw() {
 	o.Clear()
 	o.SetZeroPoint(0, 0)
 	w, h := o.Size()
-	o.drawChildren(o.children.Data(), types.NewRect(0, 0, w, h))
+	o.drawChildren(hal.ToWidgetKernel(o.children.Data()), types.NewRect(0, 0, w, h))
 	o.SetZeroPoint(0, 0)
 	log.Debug("_____________________________________________")
 }
