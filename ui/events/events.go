@@ -112,11 +112,12 @@ type TKeyboardEvent struct {
 	ch   rune
 	scan int
 	mod  int
+	x, y int
 }
 
 // NewKeyboardEvent -
-func NewKeyboardEvent(scr interfaces.IScreen, id int, ch rune, mod int) *TKeyboardEvent {
-	ret := &TKeyboardEvent{TWindowEvent: *NewWindowEvent(scr, id), ch: ch, mod: mod}
+func NewKeyboardEvent(scr interfaces.IScreen, id int, ch rune, scan int, x, y, mod int) *TKeyboardEvent {
+	ret := &TKeyboardEvent{TWindowEvent: *NewWindowEvent(scr, id), x: x, y: y, ch: ch, scan: scan, mod: mod}
 	ret.IEvent = ret
 	return ret
 }
@@ -143,11 +144,11 @@ func (o *TKeyboardEvent) EventKey() string {
 
 // String -
 func (o *TKeyboardEvent) String() string {
-	format := "%v U+%x %v"
+	format := "%v U+%x %v %v x:%v y:%v"
 	if unicode.IsPrint(o.ch) {
-		format = "%v %q %v"
+		format = "%v %q %v %v x:%v y:%v"
 	}
-	return fmt.Sprintf(format, o.TWindowEvent.String(), o.ch, o.mod)
+	return fmt.Sprintf(format, o.TWindowEvent.String(), o.ch, o.scan, o.mod, o.x, o.y)
 }
 
 // TDropFileEvent -
@@ -287,14 +288,17 @@ type TMouseButtonEvent struct {
 	TWindowEvent
 	x, y   int
 	button int
-	press  int
-	state  int
+	key    rune
+	// press  int
+	// state  int
 	clicks int
 }
 
 // NewMouseButtonEvent -
-func NewMouseButtonEvent(scr interfaces.IScreen, winID, x, y, button, press, state int) *TMouseButtonEvent {
-	ret := &TMouseButtonEvent{TWindowEvent: *NewWindowEvent(scr, winID), x: x, y: y, button: button, press: press, state: state}
+func NewMouseButtonEvent(scr interfaces.IScreen, winID, x, y, button int) *TMouseButtonEvent {
+	// func NewMouseButtonEvent(scr interfaces.IScreen, winID, x, y, button, press, state int) *TMouseButtonEvent {
+	ret := &TMouseButtonEvent{TWindowEvent: *NewWindowEvent(scr, winID), x: x, y: y, button: button}
+	// ret := &TMouseButtonEvent{TWindowEvent: *NewWindowEvent(scr, winID), x: x, y: y, button: button, press: press, state: state}
 	ret.IEvent = ret
 	return ret
 }
@@ -311,7 +315,9 @@ func (o *TMouseButtonEvent) Type() string {
 
 // String -
 func (o *TMouseButtonEvent) String() string {
-	return fmt.Sprintf("%v X:%v Y:%v type:%v state:%v", o.x, o.y, o.TWindowEvent.String(), o.press, o.state)
+	// return fmt.Sprintf("%v X:%v Y:%v type:%v state:%v", o.x, o.y, o.TWindowEvent.String(), o.press, o.state)
+	return fmt.Sprintf("%v X:%v Y:%v key: %v clicks:%v", o.TWindowEvent.String(), o.x, o.y, o.key, o.clicks)
+
 }
 
 // EventKey -

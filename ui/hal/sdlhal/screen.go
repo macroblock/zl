@@ -89,13 +89,6 @@ func (o *TScreen) NeedUpdate() bool {
 	return o.needUpdate
 }
 
-// // AddChild -
-// func (o *TScreen) AddChild(children ...interface{}) {
-// for _, child := range children {
-// 	o.children.PushBack(child)
-// }
-// }
-
 func (o *TScreen) drawBounds(vp, cr *types.TRect) {
 	o.SetClipRect(nil)
 
@@ -123,6 +116,10 @@ func initChildren(parent interfaces.IWidgetKernel, children []interfaces.IWidget
 // AddChild -
 func (o *TScreen) AddChild(children ...interfaces.IWidgetKernel) {
 	for _, child := range children {
+		if _, err := o.children.At(o.children.IndexOf(child)); err == nil {
+			log.Warning(true, "screen already contains child")
+			continue
+		}
 		o.children.PushBack(child)
 		child.SetParent(o)
 		child.SetScreen(o)
@@ -134,8 +131,12 @@ func (o *TScreen) AddChild(children ...interfaces.IWidgetKernel) {
 
 // Remove -
 func (o *TScreen) Remove(v interfaces.IWidgetKernel) {
-	o.children.Remove(o.children.IndexOf(v))
-
+	if _, err := o.children.Remove(o.children.IndexOf(v)); err != nil {
+		log.Warning(err, "can't remove from children")
+		return
+	}
+	v.SetScreen(nil)
+	v.SetParent(nil)
 }
 
 func (o *TScreen) drawChildren(children []interfaces.IWidgetKernel, clipRect *types.TRect) {
@@ -258,7 +259,6 @@ func (o *TScreen) FillRect(x1, y1, w, h int) {
 	x1 += o.zeroX
 	y1 += o.zeroY
 	o.setFillColor()
-	// o.renderer.FillRect(&sdl.Rect{X: int32(x1), Y: int32(y1), W: int32(w), H: int32(h)})
 	rect := sdl.Rect{X: int32(x1), Y: int32(y1), W: int32(w), H: int32(h)}
 	o.renderer.FillRect(&rect)
 	o.PostUpdate()
@@ -280,7 +280,6 @@ func (o *TScreen) DrawRect(x1, y1, w, h int) {
 	x1 += o.zeroX
 	y1 += o.zeroY
 	o.setDrawColor()
-	// o.renderer.DrawRect(&sdl.Rect{X: int32(x1), Y: int32(y1), W: int32(w), H: int32(h)})
 	rect := sdl.Rect{X: int32(x1), Y: int32(y1), W: int32(w), H: int32(h)}
 	o.renderer.DrawRect(&rect)
 	o.PostUpdate()

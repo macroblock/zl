@@ -10,6 +10,7 @@ type IScreen interface {
 	Close()
 	// AddChild(children ...interface{})
 	AddChild(children ...IWidgetKernel)
+	Remove(v IWidgetKernel)
 	Draw()
 	SetDrawColor(r, g, b, a int)
 	SetFillColor(r, g, b, a int)

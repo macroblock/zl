@@ -65,6 +65,23 @@ func initialize() {
 		quit = true
 		return true
 	})
+
+	events.NewAction("remove", "b", "", func(ev events.IEvent) bool {
+		scr := w1.Screen()
+		if scr != nil {
+			scr.Remove(w1)
+			scr.PostUpdate()
+		}
+		return true
+	})
+	events.NewAction("add", "n", "", func(ev events.IEvent) bool {
+		scr := ev.Screen()
+		if scr != nil {
+			scr.AddChild(w1)
+			scr.PostUpdate()
+		}
+		return true
+	})
 	events.NewAction("window resized", "window resized", "", func(ev events.IEvent) bool {
 		event := events.ToWindowResized(ev)
 		// w, h := w1.Bounds
@@ -121,11 +138,15 @@ func main() {
 		SetColor(0, 0, 100, 255).
 		SetSize(100, 100).
 		SetPos(300, 200)
-	// out.AddChild(w1, w2)
 	scr.AddChild(w1, w2)
 	currentWidget = w1
 	initialize()
-
+	scr.Remove(w1)
+	scr.Remove(w1)
+	scr.AddChild(w1)
+	scr.AddChild(w1)
+	// scr.Remove(w1)
+	// scr.Remove(w1)
 	event := events.IEvent(nil)
 	for !quit {
 		hal.Draw()

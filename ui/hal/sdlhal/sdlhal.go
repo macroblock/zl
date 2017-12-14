@@ -101,10 +101,20 @@ func (o *THal) Event() events.IEvent {
 
 	switch t := e.(type) {
 	case *sdl.MouseButtonEvent:
-		event := events.NewMouseButtonEvent(o.Screen(int(t.WindowID)), int(t.WindowID), int(t.X), int(t.Y), int(t.Button), int(t.Type), int(t.State))
+		// scanMap := sdl.GetKeyboardState()
+		// scan := sdl.Keycode(0)
+		// for i := range scanMap {
+		// 	if scanMap[i] != 0 {
+		// 		scan = sdl.GetKeyFromScancode(sdl.Scancode(i))
+
+		// 	}
+		// }
+		event := events.NewMouseButtonEvent(o.Screen(int(t.WindowID)), int(t.WindowID), int(t.X), int(t.Y), int(t.Button))
+		// event := events.NewMouseButtonEvent(o.Screen(int(t.WindowID)), int(t.WindowID), int(t.X), int(t.Y), int(t.Button), int(t.Type), int(t.State))
 		return event
 	case *sdl.KeyboardEvent:
-		event := events.NewKeyboardEvent(o.Screen(int(t.WindowID)), int(t.WindowID), rune(t.Keysym.Sym), int(t.Keysym.Mod))
+		x, y, _ := sdl.GetMouseState()
+		event := events.NewKeyboardEvent(o.Screen(int(t.WindowID)), int(t.WindowID), rune(t.Keysym.Sym), int(t.Keysym.Scancode), int(x), int(y), int(t.Keysym.Mod))
 		return event
 	case *sdl.DropEvent:
 		if t.Type == sdl.DROPFILE {
