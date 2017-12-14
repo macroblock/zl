@@ -65,7 +65,12 @@ func initialize() {
 		quit = true
 		return true
 	})
-
+	events.NewAction("mouse motion", "mouse motion", "", func(ev events.IEvent) bool {
+		xScr, yScr := ev.Screen().Size()
+		mouseOver, _, _ := ev.Screen().FindWidget(xScr, yScr)
+		log.Debug("widget: ", mouseOver)
+		return true
+	})
 	events.NewAction("remove", "b", "", func(ev events.IEvent) bool {
 		scr := w1.Screen()
 		if scr != nil {

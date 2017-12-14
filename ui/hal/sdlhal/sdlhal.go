@@ -100,6 +100,9 @@ func (o *THal) Event() events.IEvent {
 	}
 
 	switch t := e.(type) {
+	case *sdl.MouseMotionEvent:
+		event := events.NewMouseMotionEvent(o.Screen(int(t.WindowID)), int(t.WindowID), int(t.X), int(t.Y), int(t.XRel), int(t.YRel), int(t.State))
+		return event
 	case *sdl.MouseButtonEvent:
 		// scanMap := sdl.GetKeyboardState()
 		// scan := sdl.Keycode(0)
@@ -109,7 +112,7 @@ func (o *THal) Event() events.IEvent {
 
 		// 	}
 		// }
-		event := events.NewMouseButtonEvent(o.Screen(int(t.WindowID)), int(t.WindowID), int(t.X), int(t.Y), int(t.Button))
+		event := events.NewMouseButtonEvent(o.Screen(int(t.WindowID)), int(t.WindowID), int(t.X), int(t.Y), int(t.State), int(t.Button))
 		// event := events.NewMouseButtonEvent(o.Screen(int(t.WindowID)), int(t.WindowID), int(t.X), int(t.Y), int(t.Button), int(t.Type), int(t.State))
 		return event
 	case *sdl.KeyboardEvent:

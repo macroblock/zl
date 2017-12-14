@@ -11,6 +11,8 @@ type IScreen interface {
 	// AddChild(children ...interface{})
 	AddChild(children ...IWidgetKernel)
 	Remove(v IWidgetKernel)
+	// FindWidget(x, y int, root IScreen) (IWidgetKernel, int, int)
+	FindWidget(x, y int) (IWidgetKernel, int, int)
 	Draw()
 	SetDrawColor(r, g, b, a int)
 	SetFillColor(r, g, b, a int)

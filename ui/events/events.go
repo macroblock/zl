@@ -283,22 +283,44 @@ func (o *TWindowResizedEvent) EventKey() string {
 	// return fmt.Sprintf("window resized %v", o.windowID)
 }
 
+// TMouseMotionEvent -
+type TMouseMotionEvent struct {
+	TWindowEvent
+	x, y       int
+	xRel, yRel int
+	state      int
+}
+
+// NewMouseMotionEvent -
+func NewMouseMotionEvent(scr interfaces.IScreen, winID, x, y, xRel, yRel, state int) *TMouseMotionEvent {
+	ret := &TMouseMotionEvent{TWindowEvent: *NewWindowEvent(scr, winID), x: x, y: y, xRel: xRel, yRel: yRel, state: state}
+	ret.IEvent = ret
+	return ret
+}
+
+// Type -
+func (o *TMouseMotionEvent) Type() string {
+	return "mouse motion"
+}
+
+// String -
+func (o *TMouseMotionEvent) String() string {
+	return fmt.Sprintf("%v X:%v Y:%v XRel:%v YRel:%v State:%v", o.TWindowEvent.String(), o.x, o.y, o.xRel, o.yRel, o.state)
+
+}
+
 // TMouseButtonEvent -
 type TMouseButtonEvent struct {
-	TWindowEvent
-	x, y   int
+	TMouseMotionEvent
 	button int
 	key    rune
-	// press  int
-	// state  int
+	press  int
 	clicks int
 }
 
 // NewMouseButtonEvent -
-func NewMouseButtonEvent(scr interfaces.IScreen, winID, x, y, button int) *TMouseButtonEvent {
-	// func NewMouseButtonEvent(scr interfaces.IScreen, winID, x, y, button, press, state int) *TMouseButtonEvent {
-	ret := &TMouseButtonEvent{TWindowEvent: *NewWindowEvent(scr, winID), x: x, y: y, button: button}
-	// ret := &TMouseButtonEvent{TWindowEvent: *NewWindowEvent(scr, winID), x: x, y: y, button: button, press: press, state: state}
+func NewMouseButtonEvent(scr interfaces.IScreen, winID, x, y, state, button int) *TMouseButtonEvent {
+	ret := &TMouseButtonEvent{TMouseMotionEvent: TMouseMotionEvent{TWindowEvent: *NewWindowEvent(scr, winID), x: x, y: y, state: state}, button: button}
 	ret.IEvent = ret
 	return ret
 }
