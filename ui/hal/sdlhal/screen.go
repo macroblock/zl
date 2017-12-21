@@ -139,21 +139,37 @@ func (o *TScreen) Remove(v interfaces.IWidgetKernel) {
 	v.SetParent(nil)
 }
 
+func findWidget(widget interfaces.IWidgetKernel, x, y int) (interfaces.IWidgetKernel, int, int) {
+	i := widget
+	if widget, ok := i.(IBounds); ok {
+		bounds := widget.Bounds()
+		if !bounds.Contains(x, y) {
+			return nil, -1, -1
+		}
+		x -= bounds.X
+		y -= bounds.Y
+		if widget, ok := i.(IClientRect); ok {
+			cr := widget.ClientRect()
+			x -= cr.X
+			y -= cr.Y
+		}
+		if widget, ok := i.(IChildren); ok {
+			for _, i := range widget.Children() {
+				if target, tx, ty := findWidget(i, x, y); target != nil {
+					return target, tx, ty
+				}
+			}
+		}
+		return i, x, y
+	}
+	return nil, -1, -1
+}
+
 // FindWidget -
 func (o *TScreen) FindWidget(x, y int) (interfaces.IWidgetKernel, int, int) {
-	//log.Debug("start finding")
-	//scrX, scrY := o.Size()
-	// scrX, scrY := root.Size()
-	//x -= scrX
-	//y -= scrY
 	for _, i := range o.children.Data() {
-		if widget, ok := i.(IBounds); ok {
-			//log.Debug("IBounds ok ", widget.Bounds(), " x,y: ", x, ",", y)
-			if widget.Bounds().Contains(x, y) {
-				//log.Debug("intersect ok")
-				target, _ := i.(interfaces.IWidgetKernel)
-				return target, x, y
-			}
+		if target, tx, ty := findWidget(i.(interfaces.IWidgetKernel), x, y); target != nil {
+			return target, tx, ty
 		}
 	}
 	return nil, -1, -1
@@ -169,7 +185,7 @@ func (o *TScreen) drawChildren(children []interfaces.IWidgetKernel, clipRect *ty
 		}
 		cr := clipRect.Copy()
 		hasIntersect := cr.Intersect(bounds)
-		o.drawBounds(bounds, cr) //debug
+		//o.drawBounds(bounds, cr) //debug
 		o.SetClipRect(cr)
 		o.MoveZeroPoint(bounds.X, bounds.Y)
 		if child, ok := i.(IDraw); ok {

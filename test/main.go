@@ -19,14 +19,6 @@ var (
 	event                  events.IEvent
 )
 
-func randString(n int) string {
-	str := ""
-	for i := 0; i < n; i++ {
-		str += "1"
-	}
-	return str
-}
-
 func initialize() {
 	events.NewAction("quit", "q", "", func(ev events.IEvent) bool {
 		log.Debug("quit")
@@ -67,10 +59,7 @@ func initialize() {
 	})
 	events.NewAction("mouse motion", "mouse motion", "", func(ev events.IEvent) bool {
 		event := events.ToMouseMotion(ev)
-		x := event.X()
-		y := event.Y()
-		// xScr, yScr := ev.Screen().Size()
-		mouseOver, _, _ := ev.Screen().FindWidget(x, y)
+		mouseOver, _, _ := ev.Screen().FindWidget(event.Pos())
 		log.Debug("widget: ", mouseOver)
 		return true
 	})
@@ -114,7 +103,6 @@ func initialize() {
 
 func main() {
 
-	a := 1820
 	log.Add(zlogger.Build().Styler(zlogger.AnsiStyler).Done())
 	hal, err := sdlhal.New()
 	log.Error(err, "New hal")
@@ -123,7 +111,7 @@ func main() {
 	log.Debug(currentScreen)
 	w111 := widget.NewWidget().
 		SetColor(50, 0, 0, 255).
-		SetName(randString(a)).
+		SetName("Level 2").
 		SetPos(20, 10).
 		SetSize(100, 100)
 	w11 = widget.NewWidget().

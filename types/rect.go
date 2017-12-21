@@ -112,6 +112,11 @@ func (o *TRect) Move(dx, dy int) {
 	o.Y += dy
 }
 
+// Pos -
+func (o *TRect) Pos() (int, int) {
+	return o.X, o.Y
+}
+
 // Bounds -
 func (o *TRect) Bounds() (x, y, w, h int) {
 	return o.X, o.Y, o.W, o.H

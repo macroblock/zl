@@ -313,11 +313,8 @@ func (o *TMouseMotionEvent) String() string {
 	return fmt.Sprintf("%v X:%v Y:%v XRel:%v YRel:%v State:%v", o.TWindowEvent.String(), o.x, o.y, o.xRel, o.yRel, o.state)
 }
 
-// X -
-func (o *TMouseMotionEvent) X() int { return o.x }
-
-// Y -
-func (o *TMouseMotionEvent) Y() int { return o.y }
+// Pos -
+func (o *TMouseMotionEvent) Pos() (int, int) { return o.x, o.y }
 
 // TMouseButtonEvent -
 type TMouseButtonEvent struct {
