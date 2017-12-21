@@ -24,3 +24,8 @@ func ToWindowResized(ev IEvent) *TWindowResizedEvent {
 func ToMouse(ev IEvent) *TMouseButtonEvent {
 	return ev.(*TMouseButtonEvent)
 }
+
+// ToMouseMotion -
+func ToMouseMotion(ev IEvent) *TMouseMotionEvent {
+	return ev.(*TMouseMotionEvent)
+}

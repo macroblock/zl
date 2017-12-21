@@ -272,15 +272,15 @@ func (o *TWindowResizedEvent) Type() string {
 	return "window resized"
 }
 
-// String -
-func (o *TWindowResizedEvent) String() string {
-	return fmt.Sprintf("%v %vx%v", o.TWindowEvent.String(), o.w, o.h)
-}
-
 // EventKey -
 func (o *TWindowResizedEvent) EventKey() string {
 	return fmt.Sprintf("window resized")
 	// return fmt.Sprintf("window resized %v", o.windowID)
+}
+
+// String -
+func (o *TWindowResizedEvent) String() string {
+	return fmt.Sprintf("%v %vx%v", o.TWindowEvent.String(), o.w, o.h)
 }
 
 // TMouseMotionEvent -
@@ -303,11 +303,21 @@ func (o *TMouseMotionEvent) Type() string {
 	return "mouse motion"
 }
 
+// EventKey -
+func (o *TMouseMotionEvent) EventKey() string {
+	return "mouse motion"
+}
+
 // String -
 func (o *TMouseMotionEvent) String() string {
 	return fmt.Sprintf("%v X:%v Y:%v XRel:%v YRel:%v State:%v", o.TWindowEvent.String(), o.x, o.y, o.xRel, o.yRel, o.state)
-
 }
+
+// X -
+func (o *TMouseMotionEvent) X() int { return o.x }
+
+// Y -
+func (o *TMouseMotionEvent) Y() int { return o.y }
 
 // TMouseButtonEvent -
 type TMouseButtonEvent struct {

@@ -35,6 +35,19 @@ func (o *TRect) Equals(b *TRect) bool {
 	return false
 }
 
+// Contains -
+func (o *TRect) Contains(x, y int) bool {
+	if o == nil {
+		return true
+	}
+	if o.W <= 0 || o.H <= 0 ||
+		o.X > x || o.X+o.W < x ||
+		o.Y > y || o.Y+o.H < y {
+		return false
+	}
+	return true
+}
+
 // Intersect calculates the intersection of two rectangles.
 func (o *TRect) Intersect(b *TRect) bool {
 	if b == nil {

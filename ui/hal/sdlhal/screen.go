@@ -120,7 +120,7 @@ func (o *TScreen) AddChild(children ...interfaces.IWidgetKernel) {
 			log.Warning(true, "screen already contains child")
 			continue
 		}
-		o.children.PushFront(child)
+		o.children.PushBack(child)
 		child.SetParent(o)
 		child.SetScreen(o)
 		if ch, ok := child.(IChildren); ok {
@@ -141,17 +141,16 @@ func (o *TScreen) Remove(v interfaces.IWidgetKernel) {
 
 // FindWidget -
 func (o *TScreen) FindWidget(x, y int) (interfaces.IWidgetKernel, int, int) {
-	cursor := types.NewRect(x, y, 1, 1)
-	log.Debug("start finding")
-	scrX, scrY := o.Size()
+	//log.Debug("start finding")
+	//scrX, scrY := o.Size()
 	// scrX, scrY := root.Size()
-	x -= scrX
-	y -= scrY
+	//x -= scrX
+	//y -= scrY
 	for _, i := range o.children.Data() {
 		if widget, ok := i.(IBounds); ok {
-			log.Debug("IBounds ok ", widget.Bounds())
-			if intersect := cursor.Intersect(widget.Bounds()); intersect {
-				log.Debug("intersect ok")
+			//log.Debug("IBounds ok ", widget.Bounds(), " x,y: ", x, ",", y)
+			if widget.Bounds().Contains(x, y) {
+				//log.Debug("intersect ok")
 				target, _ := i.(interfaces.IWidgetKernel)
 				return target, x, y
 			}

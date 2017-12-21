@@ -101,6 +101,7 @@ func (o *THal) Event() events.IEvent {
 
 	switch t := e.(type) {
 	case *sdl.MouseMotionEvent:
+		// log.Info(t.X, ",", t.Y)
 		event := events.NewMouseMotionEvent(o.Screen(int(t.WindowID)), int(t.WindowID), int(t.X), int(t.Y), int(t.XRel), int(t.YRel), int(t.State))
 		return event
 	case *sdl.MouseButtonEvent:

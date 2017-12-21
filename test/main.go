@@ -66,8 +66,11 @@ func initialize() {
 		return true
 	})
 	events.NewAction("mouse motion", "mouse motion", "", func(ev events.IEvent) bool {
-		xScr, yScr := ev.Screen().Size()
-		mouseOver, _, _ := ev.Screen().FindWidget(xScr, yScr)
+		event := events.ToMouseMotion(ev)
+		x := event.X()
+		y := event.Y()
+		// xScr, yScr := ev.Screen().Size()
+		mouseOver, _, _ := ev.Screen().FindWidget(x, y)
 		log.Debug("widget: ", mouseOver)
 		return true
 	})
@@ -97,7 +100,6 @@ func initialize() {
 		currentWidget.Screen().PostUpdate()
 		return true
 	})
-
 	events.NewAction("mouse", "m1", "", func(ev events.IEvent) bool {
 		// event := events.ToMouse(ev)
 		// if event.Button==1 && event.Type=={
@@ -163,55 +165,8 @@ func main() {
 			}
 			time.Sleep(1)
 		}
-		log.Debug(event)
+		//log.Debug(event)
 		events.HandleEvent(event)
-		// switch ev := event.(type) {
-		// case *events.TWindowResizedEvent:
-		// 	// screenw1, screenh1 := currentScreen.Size()
-		// screenw2, screenh2 := ev.Size()
-		// w1.SetSize(100+screenw2-640, 100+screenh2-480)
-		// 	ev.Screen().PostUpdate()
-		// }
-		// switch ev := event.(type) {
-		// case *events.TKeyboardEvent:
-		// 	//log.Info(ev.Rune())
-		// 	scr := ev.Screen()
-		// 	if scr == nil {
-		// 		break
-		// 	}
-		// 	switch ev.Rune() {
-		// 	case 'q':
-		// 		quit = true
-		// 	case 'a':
-		// tw.AddPos(-5, 0)
-		// 		scr.PostUpdate()
-		// 	case 'w':
-		// 		tw.AddPos(0, -5)
-		// 		scr.PostUpdate()
-		// 	case 'd':
-		// 		tw.AddPos(5, 0)
-		// 		scr.PostUpdate()
-		// 	case 's':
-		// 		tw.AddPos(0, 5)
-		// 		scr.PostUpdate()
-		// 	case 'h':
-		// 		iw.AddPos(-5, 0)
-		// 		scr.PostUpdate()
-		// 	case 'k':
-		// 		iw.AddPos(0, -5)
-		// 		scr.PostUpdate()
-		// 	case 'l':
-		// 		iw.AddPos(5, 0)
-		// 		scr.PostUpdate()
-		// 	case 'j':
-		// 		iw.AddPos(0, 5)
-		// 		scr.PostUpdate()
-		// 	}
-		// case *events.TWindowCloseEvent:
-		// 	quit = true
-		// case *events.TDropFileEvent:
-		// 	log.Info(ev.Content())
-		// } // switch
 	} // for !quit
 	hal.Close()
 }
