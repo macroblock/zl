@@ -16,8 +16,8 @@ import (
 // ~s - log state
 // ~e - error message
 // ~x - text message
-// example: "~d ~t (~n) ~l: ~x~e\n"
-const defaultFormat = "~d ~t (~m) ~l~s~x~e\n"
+// example: "~d ~t (~m) ~l: ~x~e\n"
+const defaultFormat = "(~m) ~l~s~x~e\n"
 
 // TStyler -
 type TStyler func(key rune, params *TFormatParams) (string, bool)
